@@ -40,7 +40,10 @@ problems with mise.
 
 ## What's here
 
-- `index.html`, `styles.css`, `main.ts` --- a minimal starting site. Replace it.
+- `index.html`, `styles.css`, `script.js` --- a minimal starting site. Replace
+  it. Hand-written, no framework: `pnpm build` just copies whatever ships
+  (`scripts/build.mjs`), and `pnpm dev` serves the repo root as-is
+  (`scripts/dev-server.mjs`) --- no bundling, no transpilation.
 - `mise.toml` --- the tested Node and pnpm versions for this template.
 - `spec/` --- what the checks are for (`README.md`), the shipped invariants
   (`invariants.test.ts`), and a replaceable starter test (`starter.test.ts`);
@@ -56,9 +59,8 @@ problems with mise.
   like an API key, so your COMP4020 key can't end up in a public repo. Installed
   automatically by `pnpm install`.
 
-This template is SSG-agnostic: it's plain HTML/CSS/TypeScript on Vite, so you
-can add Astro, Eleventy, or any static generator later without changing how it
-deploys. TypeScript is the course default over plain JavaScript: the types are
-extra backpressure, and your agent feels it before you do.
+This repo runs bare: plain HTML/CSS/JavaScript, no bundler. You can swap in
+Astro, Eleventy, or any static generator later without changing how it deploys
+--- see "The stack is swappable" in `CLAUDE.md`.
 
 See the course site for how the checks map to each week of the course.

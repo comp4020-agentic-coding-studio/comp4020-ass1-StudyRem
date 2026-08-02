@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "node scripts/dev-server.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/dev-server.mjs --dist",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm build && oxlint --ignore-path .gitignore && stylelint \"**/*.css\" --ignore-path .gitignore --allow-empty-input && vitest run",
     "check:evidence": "node scripts/check-evidence.ts",
@@ -20,7 +20,6 @@
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "typescript": "^6.0.3",
-    "vite": "^8.1.5",
     "vitest": "^4.1.10"
   },
   "packageManager": "pnpm@11.9.0"
