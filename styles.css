@@ -59,6 +59,9 @@ a {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem solid var(--border);
 }
 
 #step-btn {
