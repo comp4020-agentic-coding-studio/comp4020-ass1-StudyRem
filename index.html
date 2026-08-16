@@ -32,13 +32,14 @@
 
         <div class="bundle" id="bundle" hidden>
           <p class="bundle-caption">
-            What actually goes to the model on this very first call — not
-            just your message:
+            What actually goes to the model on <em>every single call</em> —
+            not just whatever's new:
           </p>
           <div
             class="bundle-bar"
+            id="bundle-bar"
             role="img"
-            aria-label="System prompt 9 tokens, tool definitions 6 tokens, conversation history 0 tokens, your message 12 tokens"
+            aria-label="System prompt 9 tokens, tool definitions 6 tokens, history 0 tokens, this turn 12 tokens"
           >
             <div class="bundle-part part-system" style="flex-grow: 9">
               <span>system prompt<br />9 tok</span>
@@ -46,16 +47,16 @@
             <div class="bundle-part part-tools" style="flex-grow: 6">
               <span>tool defs<br />6 tok</span>
             </div>
-            <div class="bundle-part part-history" style="flex-grow: 1">
-              <span>history<br />0 tok</span>
+            <div class="bundle-part part-history" id="bundle-history" style="flex-grow: 0">
+              <span>history<br /><span id="bundle-history-tok">0</span> tok</span>
             </div>
-            <div class="bundle-part part-message" style="flex-grow: 12">
-              <span>your message<br />12 tok</span>
+            <div class="bundle-part part-message" id="bundle-new" style="flex-grow: 12">
+              <span>this turn<br /><span id="bundle-new-tok">12</span> tok</span>
             </div>
           </div>
-          <p class="bundle-note">
-            15 of those 27 tokens — the system prompt and tool definitions —
-            were already spoken for before you'd typed anything.
+          <p class="bundle-note" id="bundle-note">
+            27 tokens went into this call. Only 12 of them are new — the rest
+            is system prompt, tool defs, and everything already said.
           </p>
         </div>
 

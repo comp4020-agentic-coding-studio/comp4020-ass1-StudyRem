@@ -91,6 +91,7 @@ a {
   padding: 0 0.3rem;
   text-align: center;
   border-right: 0.0625rem solid rgb(255 255 255 / 60%);
+  transition: flex-grow 0.4s ease;
 }
 
 .bundle-part span {

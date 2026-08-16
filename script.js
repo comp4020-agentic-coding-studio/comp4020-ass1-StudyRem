@@ -93,6 +93,12 @@ const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
 const bundle = document.getElementById("bundle");
+const bundleBar = document.getElementById("bundle-bar");
+const bundleHistory = document.getElementById("bundle-history");
+const bundleNew = document.getElementById("bundle-new");
+const bundleHistoryTok = document.getElementById("bundle-history-tok");
+const bundleNewTok = document.getElementById("bundle-new-tok");
+const bundleNote = document.getElementById("bundle-note");
 const loopReveal = document.getElementById("loop-reveal");
 const windowReveal = document.getElementById("window-reveal");
 
@@ -201,6 +207,22 @@ function appendTurn(turn) {
   }
 }
 
+function updateBundle(index) {
+  const historyTokens = TURNS.slice(0, index).reduce((sum, t) => sum + t.tokens, 0);
+  const newTokens = TURNS[index].tokens;
+  const total = BASELINE_TOKENS + historyTokens + newTokens;
+
+  bundleHistory.style.flexGrow = String(historyTokens);
+  bundleNew.style.flexGrow = String(newTokens);
+  bundleHistoryTok.textContent = String(historyTokens);
+  bundleNewTok.textContent = String(newTokens);
+  bundleNote.textContent = `${total} tokens went into this call. Only ${newTokens} of them are new — the rest is system prompt, tool defs, and everything already said.`;
+  bundleBar.setAttribute(
+    "aria-label",
+    `System prompt 9 tokens, tool definitions 6 tokens, history ${historyTokens} tokens, this turn ${newTokens} tokens`,
+  );
+}
+
 function rawTotal() {
   return BASELINE_TOKENS + windowChunks.reduce((sum, chunk) => sum + chunk.tokens, 0);
 }
@@ -300,12 +322,10 @@ function step() {
   appendTurn(turn);
   updateLanes(turn);
   updateContextWindow(turn);
+  updateBundle(turnIndex);
+  revealOnce(bundle);
   caption.textContent = turn.caption;
   turnIndex += 1;
-
-  if (turn.role === "user") {
-    revealOnce(bundle);
-  }
 
   if (turnIndex >= TURNS.length) {
     stepButton.textContent = "Restart";
