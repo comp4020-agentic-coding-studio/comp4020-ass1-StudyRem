@@ -251,11 +251,24 @@ function oldestLiveChunk() {
   return windowChunks.find((chunk) => !chunk.evicted);
 }
 
+// A plain-English tag for what a turn actually is, for readers who haven't
+// followed Act 1's model/harness lane framing — used in Act 2's captions
+// and chunk tooltips, which run on their own ambient loop.
+function readableChange(turn) {
+  if (turn.role === "user") {
+    return "user input";
+  }
+  if (turn.role === "harness") {
+    return "harness ran a tool";
+  }
+  return turn.label.includes("tool call") ? "model calls a tool" : "model's final answer";
+}
+
 function addChunk(turn) {
   const el = document.createElement("div");
   el.className = `chunk role-${turn.role}`;
   el.style.flexGrow = "0";
-  el.title = `${turn.label} — ${turn.tokens} tok`;
+  el.title = `${readableChange(turn)} — ${turn.tokens} tok`;
 
   contextBar.insertBefore(el, chunkSpacer);
 
@@ -267,7 +280,7 @@ function addChunk(turn) {
   });
   flash(el, "flash-new");
 
-  const chunk = { tokens: turn.tokens, evicted: false, el, label: turn.label };
+  const chunk = { tokens: turn.tokens, evicted: false, el, change: readableChange(turn) };
   windowChunks.push(chunk);
   return chunk;
 }
@@ -284,7 +297,7 @@ function updateContextWindow(turn) {
     oldest.evicted = true;
     oldest.el.classList.add("evicted");
     oldest.el.style.flexGrow = String(STUB_TOKENS);
-    oldest.el.title = `${oldest.label} (compacted)`;
+    oldest.el.title = `${oldest.change} (compacted)`;
     flash(oldest.el, "flash-evicted");
     evictedCount += 1;
   }
@@ -293,7 +306,7 @@ function updateContextWindow(turn) {
   tokensRawEl.textContent = String(rawTotal());
   chunkSpacer.style.flexGrow = String(Math.max(0, CAPACITY - heldTotal()));
 
-  const addedLine = `What's changing: +${turn.tokens} tokens just added (${turn.role}).`;
+  const addedLine = `What's changing: +${turn.tokens} tokens — ${readableChange(turn)}.`;
   if (evictedCount === 1) {
     windowCaption.textContent = `${addedLine} Window's full — the oldest turn just got compacted down to a stub to make room.`;
   } else if (evictedCount > 1) {
