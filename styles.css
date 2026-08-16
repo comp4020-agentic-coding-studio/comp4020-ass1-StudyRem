@@ -1,21 +1,26 @@
 :root {
-  --bg: #0b0e11;
-  --bg-panel: #12161c;
-  --bg-inset: #0d1013;
-  --bg-muted: #21262d;
-  --neutral-1: #30363d;
-  --neutral-2: #484f58;
-  --border: #2a2f37;
-  --text: #c9d1d9;
-  --text-dim: #8b949e;
-  --accent: #3fb950;
-  --role-user: #58a6ff;
-  --role-user-bg: #1f6feb;
-  --role-model: #d2a8ff;
-  --role-model-bg: #8957e5;
-  --role-harness: #f0883e;
-  --role-harness-bg: #bd561d;
-  --error: #f85149;
+  /* True neutral near-black rather than GitHub's blue-tinted dark-mode grays
+     — a terminal reads as its own identity, not a borrowed IDE theme. Role
+     colors are desaturated from their GitHub-primer originals so they stay
+     legible as user/model/harness cues without competing with --accent,
+     which is boosted so it reads as the one dominant hue on the page. */
+  --bg: #0a0a0a;
+  --bg-panel: #141414;
+  --bg-inset: #0d0d0d;
+  --bg-muted: #202020;
+  --neutral-1: #303030;
+  --neutral-2: #4a4a4a;
+  --border: #2c2c2c;
+  --text: #d6d6d6;
+  --text-dim: #8f8f8f;
+  --accent: #46e065;
+  --role-user: #7ca8d9;
+  --role-user-bg: #3a5f8a;
+  --role-model: #c3aee0;
+  --role-model-bg: #715a95;
+  --role-harness: #d99a5f;
+  --role-harness-bg: #96602f;
+  --error: #f2564f;
   --font-mono: ui-monospace, sfmono-regular, menlo, consolas, "Liberation Mono", monospace;
   --font-sans: system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
   --font-display: var(--font-sans);
