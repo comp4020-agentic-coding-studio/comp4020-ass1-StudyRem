@@ -176,7 +176,9 @@ function appendTurn(turn) {
   item.getBoundingClientRect();
   requestAnimationFrame(() => item.classList.remove("entering"));
 
-  item.scrollIntoView({ behavior: "smooth", block: "end" });
+  if (typeof item.scrollIntoView === "function") {
+    item.scrollIntoView({ behavior: "smooth", block: "end" });
+  }
 }
 
 function rawTotal() {
