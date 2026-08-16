@@ -477,8 +477,6 @@ h2 {
 
 .lane-box {
   min-height: 4.5rem;
-  border: 0.0625rem solid var(--border);
-  border-radius: 0;
   padding: 0.6rem 0.8rem;
   font-size: 0.85rem;
   white-space: pre-wrap;
@@ -496,25 +494,29 @@ h2 {
   font-style: italic;
 }
 
-.lane-model .lane-box {
-  border-color: var(--role-model);
-}
-
-.lane-harness .lane-box {
-  border-color: var(--role-harness);
-}
-
 .lane-harness .lane-box.pending {
   color: var(--text-dim);
   font-style: italic;
 }
 
 .lane-arrow {
+  display: flex;
+  align-items: center;
   flex: 0 0 auto;
   align-self: center;
-  font-size: 1.4rem;
   color: var(--border);
   transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.lane-arrow-bar {
+  width: 1.5rem;
+  height: 0.0625rem;
+  background: currentcolor;
+}
+
+.lane-arrow-head {
+  font-size: 1.4rem;
+  line-height: 1;
 }
 
 .lane-arrow.firing {
