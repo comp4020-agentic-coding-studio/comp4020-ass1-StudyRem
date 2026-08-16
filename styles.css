@@ -86,7 +86,7 @@ a {
   .toc {
     position: fixed;
     top: 3rem;
-    left: max(1rem, calc(50% - 32.5rem));
+    left: max(1rem, calc(50% - 34rem));
     width: 10rem;
     max-width: 10rem;
     margin: 0;
