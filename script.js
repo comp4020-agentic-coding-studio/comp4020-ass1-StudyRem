@@ -89,7 +89,6 @@ const harnessBox = document.getElementById("harness-box");
 const laneArrow = document.getElementById("lane-arrow");
 const contextBar = document.getElementById("context-bar");
 const chunkSpacer = document.getElementById("chunk-spacer");
-const chunkBaseline = document.getElementById("chunk-baseline");
 const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
@@ -97,8 +96,6 @@ const bundle = document.getElementById("bundle");
 const bundleBar = document.getElementById("bundle-bar");
 const bundleHistory = document.getElementById("bundle-history");
 const bundleNew = document.getElementById("bundle-new");
-const bundleHistoryTok = document.getElementById("bundle-history-tok");
-const bundleNewTok = document.getElementById("bundle-new-tok");
 const bundleNote = document.getElementById("bundle-note");
 const loopReveal = document.getElementById("loop-reveal");
 const windowReveal = document.getElementById("window-reveal");
@@ -107,6 +104,7 @@ let turnIndex = 0;
 
 const RESET_FLASH_MS = 220;
 const ARROW_FIRE_MS = 600;
+const CHANGE_FLASH_MS = 700;
 
 // Act 2: a fixed-size context window fed by the same steps. The system
 // prompt + tool definitions are a permanent, never-evicted cost — the window
@@ -133,6 +131,15 @@ function fireArrow() {
   laneArrow.getBoundingClientRect();
   laneArrow.classList.add("firing");
   setTimeout(() => laneArrow.classList.remove("firing"), ARROW_FIRE_MS);
+}
+
+// Same force-reflow-then-toggle idiom as fireArrow, generalised to any
+// element/class pair — used to pulse a bar segment that just changed.
+function flash(el, className) {
+  el.classList.remove(className);
+  el.getBoundingClientRect();
+  el.classList.add(className);
+  setTimeout(() => el.classList.remove(className), CHANGE_FLASH_MS);
 }
 
 function updateLanes(turn) {
@@ -185,28 +192,6 @@ function resetReveals() {
   });
 }
 
-// A bar segment too narrow to hold its label used to clip into a jagged
-// "..." — fade the text out instead the moment it would no longer fit on
-// its own line, rather than showing a half-cut label. Compare the label's
-// natural (unwrapped) width against the space actually available: overflow
-// on the ancestor clips painting, not layout, so the label's own rect still
-// reports its true width even while visually cut off.
-const labelFitObserver =
-  typeof ResizeObserver === "undefined"
-    ? { observe() {}, unobserve() {} }
-    : new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const label = entry.target.querySelector(".chunk-label, span");
-          const cramped = label
-            ? label.getBoundingClientRect().width > entry.contentRect.width
-            : false;
-          entry.target.classList.toggle("label-cramped", cramped);
-        }
-      });
-
-document.querySelectorAll(".bundle-part").forEach((el) => labelFitObserver.observe(el));
-labelFitObserver.observe(chunkBaseline);
-
 function appendTurn(turn) {
   const item = document.createElement("li");
   item.className = `block role-${turn.role} entering`;
@@ -233,19 +218,22 @@ function appendTurn(turn) {
 }
 
 function updateBundle(index) {
+  const turn = TURNS[index];
   const historyTokens = TURNS.slice(0, index).reduce((sum, t) => sum + t.tokens, 0);
-  const newTokens = TURNS[index].tokens;
+  const newTokens = turn.tokens;
   const total = BASELINE_TOKENS + historyTokens + newTokens;
 
   bundleHistory.style.flexGrow = String(historyTokens);
+  bundleHistory.title = `already said — ${historyTokens} tok`;
   bundleNew.style.flexGrow = String(newTokens);
-  bundleHistoryTok.textContent = String(historyTokens);
-  bundleNewTok.textContent = String(newTokens);
+  bundleNew.className = `bundle-part part-message role-${turn.role}`;
+  bundleNew.title = `${turn.label} — ${newTokens} tok`;
   bundleNote.textContent = `9 system + 6 tool defs + ${historyTokens} history + ${newTokens} this turn = ${total} tokens total — only ${newTokens} of them are new.`;
   bundleBar.setAttribute(
     "aria-label",
     `System prompt 9 tokens, tool definitions 6 tokens, history ${historyTokens} tokens, this turn ${newTokens} tokens`,
   );
+  flash(bundleNew, "flash-new");
 }
 
 function rawTotal() {
@@ -267,14 +255,9 @@ function addChunk(turn) {
   const el = document.createElement("div");
   el.className = `chunk role-${turn.role}`;
   el.style.flexGrow = "0";
-
-  const label = document.createElement("span");
-  label.className = "chunk-label";
-  label.textContent = turn.label;
-  el.append(label);
+  el.title = `${turn.label} — ${turn.tokens} tok`;
 
   contextBar.insertBefore(el, chunkSpacer);
-  labelFitObserver.observe(el);
 
   // Same force-reflow trick as the transcript blocks: start at 0 so the
   // grow-in to its real width actually animates.
@@ -282,8 +265,9 @@ function addChunk(turn) {
   requestAnimationFrame(() => {
     el.style.flexGrow = String(turn.tokens);
   });
+  flash(el, "flash-new");
 
-  const chunk = { tokens: turn.tokens, evicted: false, el };
+  const chunk = { tokens: turn.tokens, evicted: false, el, label: turn.label };
   windowChunks.push(chunk);
   return chunk;
 }
@@ -300,7 +284,8 @@ function updateContextWindow(turn) {
     oldest.evicted = true;
     oldest.el.classList.add("evicted");
     oldest.el.style.flexGrow = String(STUB_TOKENS);
-    oldest.el.querySelector(".chunk-label").textContent = "[compacted]";
+    oldest.el.title = `${oldest.label} (compacted)`;
+    flash(oldest.el, "flash-evicted");
     evictedCount += 1;
   }
 
@@ -324,7 +309,6 @@ function updateContextWindow(turn) {
 
 function resetContextWindow() {
   windowChunks.forEach((chunk) => {
-    labelFitObserver.unobserve(chunk.el);
     chunk.el.remove();
   });
   windowChunks.length = 0;

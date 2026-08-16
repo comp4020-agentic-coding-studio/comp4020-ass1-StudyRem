@@ -36,24 +36,33 @@
                 What actually goes to the model on <em>every single call</em> —
                 not just whatever's new:
               </p>
+              <ul class="bar-legend" aria-hidden="true">
+                <li><span class="swatch swatch-neutral"></span>system + tools</li>
+                <li><span class="swatch swatch-muted"></span>already said</li>
+                <li><span class="swatch swatch-user"></span>user</li>
+                <li><span class="swatch swatch-model"></span>model</li>
+                <li><span class="swatch swatch-harness"></span>harness</li>
+              </ul>
               <div
                 class="bundle-bar"
                 id="bundle-bar"
                 role="img"
                 aria-label="System prompt 9 tokens, tool definitions 6 tokens, history 0 tokens, this turn 12 tokens"
               >
-                <div class="bundle-part part-system" style="flex-grow: 9">
-                  <span>system prompt<br />9 tok</span>
-                </div>
-                <div class="bundle-part part-tools" style="flex-grow: 6">
-                  <span>tool defs<br />6 tok</span>
-                </div>
-                <div class="bundle-part part-history" id="bundle-history" style="flex-grow: 0">
-                  <span>history<br /><span id="bundle-history-tok">0</span> tok</span>
-                </div>
-                <div class="bundle-part part-message" id="bundle-new" style="flex-grow: 12">
-                  <span>this turn<br /><span id="bundle-new-tok">12</span> tok</span>
-                </div>
+                <div class="bundle-part part-system" style="flex-grow: 9" title="system prompt — 9 tok"></div>
+                <div class="bundle-part part-tools" style="flex-grow: 6" title="tool defs — 6 tok"></div>
+                <div
+                  class="bundle-part part-history"
+                  id="bundle-history"
+                  style="flex-grow: 0"
+                  title="already said — 0 tok"
+                ></div>
+                <div
+                  class="bundle-part part-message"
+                  id="bundle-new"
+                  style="flex-grow: 12"
+                  title="this turn — 12 tok"
+                ></div>
               </div>
               <p class="bundle-note" id="bundle-note">
                 27 tokens went into this call. Only 12 of them are new — the rest
@@ -150,15 +159,26 @@
               even arrives.
             </p>
 
+            <ul class="bar-legend" aria-hidden="true">
+              <li><span class="swatch swatch-neutral"></span>system + tools</li>
+              <li><span class="swatch swatch-user"></span>user</li>
+              <li><span class="swatch swatch-model"></span>model</li>
+              <li><span class="swatch swatch-harness"></span>harness</li>
+              <li><span class="swatch swatch-muted"></span>compacted</li>
+            </ul>
+
             <div
               class="context-bar"
               id="context-bar"
               role="img"
               aria-label="Fixed-size context window, filling automatically on a loop; oldest turns compact into stubs once it's full"
             >
-              <div class="chunk chunk-baseline" id="chunk-baseline" style="flex-grow: 15">
-                <span class="chunk-label">system + tools</span>
-              </div>
+              <div
+                class="chunk chunk-baseline"
+                id="chunk-baseline"
+                style="flex-grow: 15"
+                title="system + tools — 15 tok"
+              ></div>
               <div class="chunk-spacer" id="chunk-spacer" aria-hidden="true" style="flex-grow: 55"></div>
             </div>
 
