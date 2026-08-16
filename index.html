@@ -9,7 +9,8 @@
   <body>
     <header>
       <nav aria-label="Primary">
-        <a href="./">Home</a>
+        <a href="#loop-demo">The loop</a>
+        <a href="#context-window">Why it can't run forever</a>
       </nav>
     </header>
     <main>
@@ -20,7 +21,7 @@
         one turn at a time.
       </p>
 
-      <section class="loop-demo" aria-label="Agent tool-call loop demo">
+      <section class="loop-demo" id="loop-demo" aria-label="Agent tool-call loop demo">
         <div class="term-panel">
           <div class="term-titlebar">
             <span class="term-dots">
@@ -107,7 +108,7 @@
         </p>
       </section>
 
-      <section class="context-window" aria-label="Context window demo">
+      <section class="context-window" id="context-window" aria-label="Context window demo">
         <h2>Why can't this go on forever?</h2>
         <p>
           Every step above didn't just add one block — the model re-read the
