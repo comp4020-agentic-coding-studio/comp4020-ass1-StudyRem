@@ -48,6 +48,65 @@
 
         <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
       </section>
+
+      <section class="context-window" aria-label="Context window demo">
+        <h2>Why can't this go on forever?</h2>
+        <p>
+          Every step above didn't just add one block — the model re-read the
+          <em>whole</em> transcript, every time, from scratch. That doesn't
+          scale. Keep clicking "Step" and watch what a fixed-size context
+          window does to the same steps.
+        </p>
+
+        <ul class="reasons">
+          <li>
+            <strong>Every call re-sends the whole history</strong> — not just
+            what's new. A 20-step session re-bills the first tool's output 19
+            extra times.
+          </li>
+          <li>
+            <strong>Cost and latency scale with total tokens in context</strong>
+            — self-attention means more tokens costs more compute per
+            generated token, not just more to read.
+          </li>
+          <li>
+            <strong>Quality degrades before the hard cutoff</strong> —
+            "lost in the middle": detail buried deep in a huge context gets
+            attended to worse than detail near the edges.
+          </li>
+          <li>
+            <strong>There's a hard trained limit regardless</strong> —
+            beyond it, behaviour isn't reliable, however much you're willing
+            to pay.
+          </li>
+          <li>
+            <strong>The fix:</strong> truncate old tool output,
+            summarise/compact history, or move things to files instead of
+            live context.
+          </li>
+        </ul>
+
+        <p class="window-caption" id="window-caption" aria-live="polite">
+          The window always carries a fixed cost before your first message
+          even arrives.
+        </p>
+
+        <div
+          class="context-bar"
+          id="context-bar"
+          role="img"
+          aria-label="Fixed-size context window, filling as the loop steps; oldest turns compact into stubs once it's full"
+        >
+          <div class="chunk chunk-baseline" id="chunk-baseline" style="flex-grow: 15">
+            <span class="chunk-label">system + tools</span>
+          </div>
+        </div>
+
+        <p class="window-readout" id="window-readout">
+          Holding <strong id="tokens-held">15</strong> tokens (capacity 70) —
+          would be <strong id="tokens-raw">15</strong> without compaction.
+        </p>
+      </section>
     </main>
     <script type="module" src="./script.js"></script>
   </body>

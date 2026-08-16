@@ -9,6 +9,7 @@ const TURNS = [
     content: "The tests are failing, can you fix it?",
     caption:
       "Your message arrives. It looks like it's the only thing being sent — it isn't.",
+    tokens: 12,
   },
   {
     role: "model",
@@ -16,6 +17,7 @@ const TURNS = [
     content: "run_tests()",
     caption:
       "The model replies with a tool call, not code. It's a structured request — the model isn't running anything itself.",
+    tokens: 4,
   },
   {
     role: "harness",
@@ -23,6 +25,7 @@ const TURNS = [
     content: '1 failing: expected sum(2, 3) to be 5, got "23"',
     caption:
       "Something outside the model — the harness — actually ran the tests and captured this result.",
+    tokens: 16,
   },
   {
     role: "model",
@@ -30,36 +33,42 @@ const TURNS = [
     content: 'read_file("sum.js")',
     caption:
       "The whole transcript so far goes back to the model, and it asks for another tool.",
+    tokens: 6,
   },
   {
     role: "harness",
     label: "Harness → result",
     content: "function sum(a, b) {\n  return a + b; // a, b arrive as strings\n}",
     caption: "The harness reads the file and returns its contents as a block.",
+    tokens: 22,
   },
   {
     role: "model",
     label: "Model → tool call",
     content: 'edit_file("sum.js", "return Number(a) + Number(b);")',
     caption: "The model proposes a fix — still just a request, not an edit made by the model itself.",
+    tokens: 16,
   },
   {
     role: "harness",
     label: "Harness → result",
     content: "file updated",
     caption: "The harness applies the edit and confirms it.",
+    tokens: 4,
   },
   {
     role: "model",
     label: "Model → tool call",
     content: "run_tests()",
     caption: "The model checks its own work by asking for the tests again.",
+    tokens: 4,
   },
   {
     role: "harness",
     label: "Harness → result",
     content: "3 passing",
     caption: "The harness runs them and reports back.",
+    tokens: 4,
   },
   {
     role: "model",
@@ -68,6 +77,7 @@ const TURNS = [
       'Fixed it — sum.js was concatenating strings instead of adding numbers. Tests pass now.',
     caption:
       "Only now does the model reply with plain text and no tool call — that's what ends the loop.",
+    tokens: 22,
   },
 ];
 
@@ -77,11 +87,23 @@ const transcript = document.getElementById("transcript");
 const modelBox = document.getElementById("model-box");
 const harnessBox = document.getElementById("harness-box");
 const laneArrow = document.getElementById("lane-arrow");
+const contextBar = document.getElementById("context-bar");
+const windowCaption = document.getElementById("window-caption");
+const tokensHeldEl = document.getElementById("tokens-held");
+const tokensRawEl = document.getElementById("tokens-raw");
 
 let turnIndex = 0;
 
 const RESET_FLASH_MS = 220;
 const ARROW_FIRE_MS = 600;
+
+// Act 2: a fixed-size context window fed by the same steps. The system
+// prompt + tool definitions are a permanent, never-evicted cost — the window
+// is never actually empty, even before turn one.
+const BASELINE_TOKENS = 15;
+const CAPACITY = 70;
+const STUB_TOKENS = 2;
+const windowChunks = [];
 
 // Model box always blanks-then-refills, whichever turn it is: the model has
 // no memory of its own last turn, so the sketch has to look "reset" every
@@ -157,11 +179,89 @@ function appendTurn(turn) {
   item.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
+function rawTotal() {
+  return BASELINE_TOKENS + windowChunks.reduce((sum, chunk) => sum + chunk.tokens, 0);
+}
+
+function heldTotal() {
+  return (
+    BASELINE_TOKENS +
+    windowChunks.reduce((sum, chunk) => sum + (chunk.evicted ? STUB_TOKENS : chunk.tokens), 0)
+  );
+}
+
+function oldestLiveChunk() {
+  return windowChunks.find((chunk) => !chunk.evicted);
+}
+
+function addChunk(turn) {
+  const el = document.createElement("div");
+  el.className = `chunk role-${turn.role}`;
+  el.style.flexGrow = "0";
+
+  const label = document.createElement("span");
+  label.className = "chunk-label";
+  label.textContent = turn.label;
+  el.append(label);
+
+  contextBar.append(el);
+
+  // Same force-reflow trick as the transcript blocks: start at 0 so the
+  // grow-in to its real width actually animates.
+  el.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    el.style.flexGrow = String(turn.tokens);
+  });
+
+  const chunk = { tokens: turn.tokens, evicted: false, el };
+  windowChunks.push(chunk);
+  return chunk;
+}
+
+function updateContextWindow(turn) {
+  const justAdded = addChunk(turn);
+  let evictedCount = 0;
+
+  while (heldTotal() > CAPACITY) {
+    const oldest = oldestLiveChunk();
+    if (!oldest || oldest === justAdded) {
+      break;
+    }
+    oldest.evicted = true;
+    oldest.el.classList.add("evicted");
+    oldest.el.style.flexGrow = String(STUB_TOKENS);
+    oldest.el.querySelector(".chunk-label").textContent = "[compacted]";
+    evictedCount += 1;
+  }
+
+  tokensHeldEl.textContent = String(heldTotal());
+  tokensRawEl.textContent = String(rawTotal());
+
+  if (evictedCount === 1) {
+    windowCaption.textContent =
+      "The window's full: the oldest turn just got compacted down to a stub to make room.";
+  } else if (evictedCount > 1) {
+    windowCaption.textContent = `The window's full: ${evictedCount} older turns just got compacted down to stubs to make room.`;
+  } else {
+    windowCaption.textContent = `Holding steady — ${heldTotal()} of ${CAPACITY} tokens used.`;
+  }
+}
+
+function resetContextWindow() {
+  windowChunks.forEach((chunk) => chunk.el.remove());
+  windowChunks.length = 0;
+  tokensHeldEl.textContent = String(BASELINE_TOKENS);
+  tokensRawEl.textContent = String(BASELINE_TOKENS);
+  windowCaption.textContent =
+    "The window always carries a fixed cost before your first message even arrives.";
+}
+
 function step() {
   if (turnIndex >= TURNS.length) {
     turnIndex = 0;
     transcript.innerHTML = "";
     resetLanes();
+    resetContextWindow();
     stepButton.textContent = "Step →";
     caption.textContent = 'Click "Step" to send the first message.';
     return;
@@ -170,6 +270,7 @@ function step() {
   const turn = TURNS[turnIndex];
   appendTurn(turn);
   updateLanes(turn);
+  updateContextWindow(turn);
   caption.textContent = turn.caption;
   turnIndex += 1;
 
