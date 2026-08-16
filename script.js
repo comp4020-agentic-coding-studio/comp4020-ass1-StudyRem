@@ -99,6 +99,9 @@ const bundleNew = document.getElementById("bundle-new");
 const bundleNote = document.getElementById("bundle-note");
 const loopReveal = document.getElementById("loop-reveal");
 const windowReveal = document.getElementById("window-reveal");
+const speedDownBtn = document.getElementById("speed-down-btn");
+const speedUpBtn = document.getElementById("speed-up-btn");
+const ambientSpeedEl = document.getElementById("ambient-speed");
 
 let turnIndex = 0;
 
@@ -361,9 +364,14 @@ stepButton.addEventListener("click", step);
 
 // Act 2 runs as its own ambient loop, decoupled from Act 1's Step button —
 // it's here to show "the window fills, evicts, repeats" on its own
-// timeline, not to mirror every click Act 1 gets.
-const AMBIENT_STEP_MS = 900;
+// timeline, not to mirror every click Act 1 gets. The speed is adjustable
+// at runtime; 900ms was the original pace, so index 1 (1/4 that speed)
+// is where the loop starts.
+const AMBIENT_SPEEDS_MS = [3600 * 4, 3600 * 2, 3600, 1800, 900, 450];
+const AMBIENT_SPEED_LABELS = ["0.0625×", "0.125×", "0.25×", "0.5×", "1×", "2×"];
+let ambientSpeedIndex = 2;
 let ambientIndex = 0;
+let ambientTimer = null;
 
 function ambientTick() {
   if (ambientIndex >= TURNS.length) {
@@ -375,5 +383,37 @@ function ambientTick() {
   ambientIndex += 1;
 }
 
+function restartAmbientTimer() {
+  if (ambientTimer !== null) {
+    clearInterval(ambientTimer);
+  }
+  ambientTimer = setInterval(ambientTick, AMBIENT_SPEEDS_MS[ambientSpeedIndex]);
+}
+
+function updateSpeedControls() {
+  ambientSpeedEl.textContent = AMBIENT_SPEED_LABELS[ambientSpeedIndex];
+  speedDownBtn.disabled = ambientSpeedIndex === 0;
+  speedUpBtn.disabled = ambientSpeedIndex === AMBIENT_SPEEDS_MS.length - 1;
+}
+
+speedDownBtn.addEventListener("click", () => {
+  if (ambientSpeedIndex === 0) {
+    return;
+  }
+  ambientSpeedIndex -= 1;
+  updateSpeedControls();
+  restartAmbientTimer();
+});
+
+speedUpBtn.addEventListener("click", () => {
+  if (ambientSpeedIndex === AMBIENT_SPEEDS_MS.length - 1) {
+    return;
+  }
+  ambientSpeedIndex += 1;
+  updateSpeedControls();
+  restartAmbientTimer();
+});
+
+updateSpeedControls();
 resetContextWindow();
-setInterval(ambientTick, AMBIENT_STEP_MS);
+restartAmbientTimer();

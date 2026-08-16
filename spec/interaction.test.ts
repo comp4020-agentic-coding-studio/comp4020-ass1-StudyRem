@@ -80,8 +80,18 @@ describe("core interaction: stepping the tool-call loop", () => {
     const held = window.document.getElementById("tokens-held");
     const before = Number(held?.textContent);
 
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 4000));
 
     expect(Number(held?.textContent)).toBeGreaterThan(before);
+  }, 10000);
+
+  it("speeds up the ambient loop when the speed-up button is clicked", async () => {
+    const window = await loadPage();
+    const label = window.document.getElementById("ambient-speed");
+    const before = label?.textContent;
+
+    click(window, "speed-up-btn");
+
+    expect(label?.textContent).not.toBe(before);
   });
 });

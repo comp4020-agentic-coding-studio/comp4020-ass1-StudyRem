@@ -89,7 +89,7 @@
             <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
 
             <div class="loop-controls">
-              <button id="step-btn" type="button" data-testid="step-button">
+              <button id="step-btn" class="term-btn" type="button" data-testid="step-button">
                 Step →
               </button>
               <p class="loop-caption" id="loop-caption" aria-live="polite">
@@ -186,6 +186,28 @@
               Holding <strong id="tokens-held">15</strong> tokens (capacity 70) —
               would be <strong id="tokens-raw">15</strong> without compaction.
             </p>
+
+            <div class="ambient-controls">
+              <button
+                id="speed-down-btn"
+                class="term-btn"
+                type="button"
+                data-testid="speed-down"
+                aria-label="Slow down the ambient loop"
+              >
+                slower
+              </button>
+              <span class="ambient-speed" id="ambient-speed" aria-live="polite">0.25×</span>
+              <button
+                id="speed-up-btn"
+                class="term-btn"
+                type="button"
+                data-testid="speed-up"
+                aria-label="Speed up the ambient loop"
+              >
+                faster
+              </button>
+            </div>
           </div>
         </div>
 
