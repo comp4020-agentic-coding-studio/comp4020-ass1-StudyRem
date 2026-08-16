@@ -30,6 +30,35 @@
           </p>
         </div>
 
+        <div class="bundle" id="bundle" hidden>
+          <p class="bundle-caption">
+            What actually goes to the model on this very first call — not
+            just your message:
+          </p>
+          <div
+            class="bundle-bar"
+            role="img"
+            aria-label="System prompt 9 tokens, tool definitions 6 tokens, conversation history 0 tokens, your message 12 tokens"
+          >
+            <div class="bundle-part part-system" style="flex-grow: 9">
+              <span>system prompt<br />9 tok</span>
+            </div>
+            <div class="bundle-part part-tools" style="flex-grow: 6">
+              <span>tool defs<br />6 tok</span>
+            </div>
+            <div class="bundle-part part-history" style="flex-grow: 1">
+              <span>history<br />0 tok</span>
+            </div>
+            <div class="bundle-part part-message" style="flex-grow: 12">
+              <span>your message<br />12 tok</span>
+            </div>
+          </div>
+          <p class="bundle-note">
+            15 of those 27 tokens — the system prompt and tool definitions —
+            were already spoken for before you'd typed anything.
+          </p>
+        </div>
+
         <div class="lanes" aria-hidden="true">
           <div class="lane lane-model">
             <p class="lane-title">
@@ -47,6 +76,13 @@
         </div>
 
         <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
+
+        <p class="reveal reveal-loop" id="loop-reveal" aria-live="polite" hidden>
+          <strong>Notice:</strong> the model had no memory between any of
+          those turns. Every single one was a brand-new inference call over
+          the whole transcript, reattached — persistence lives in the
+          transcript above, not in the model.
+        </p>
       </section>
 
       <section class="context-window" aria-label="Context window demo">
@@ -106,7 +142,22 @@
           Holding <strong id="tokens-held">15</strong> tokens (capacity 70) —
           would be <strong id="tokens-raw">15</strong> without compaction.
         </p>
+
+        <p class="reveal reveal-window" id="window-reveal" aria-live="polite" hidden>
+          <strong>That's compaction:</strong> cheaper, but not free. Whatever
+          just got squeezed into a stub, the model can no longer actually
+          see — only the fact that something happened there.
+        </p>
       </section>
+
+      <p class="closing">
+        This is why real agent harnesses quietly summarise, truncate, or move
+        history to files — not as a nicety, but because the alternative is a
+        context window that either bankrupts you or forgets the part that
+        mattered. What looks like memory in an agent session isn't memory at
+        all. It's a transcript, replayed in full, until someone decides what
+        to cut.
+      </p>
     </main>
     <script src="./script.js"></script>
   </body>

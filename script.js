@@ -91,6 +91,9 @@ const contextBar = document.getElementById("context-bar");
 const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
+const bundle = document.getElementById("bundle");
+const loopReveal = document.getElementById("loop-reveal");
+const windowReveal = document.getElementById("window-reveal");
 
 let turnIndex = 0;
 
@@ -154,6 +157,22 @@ function resetLanes() {
   harnessBox.textContent = "—";
   harnessBox.classList.remove("pending");
   laneArrow.classList.remove("firing");
+}
+
+function revealOnce(el) {
+  if (el.classList.contains("visible")) {
+    return;
+  }
+  el.hidden = false;
+  el.getBoundingClientRect();
+  requestAnimationFrame(() => el.classList.add("visible"));
+}
+
+function resetReveals() {
+  [bundle, loopReveal, windowReveal].forEach((el) => {
+    el.hidden = true;
+    el.classList.remove("visible");
+  });
 }
 
 function appendTurn(turn) {
@@ -247,6 +266,10 @@ function updateContextWindow(turn) {
   } else {
     windowCaption.textContent = `Holding steady — ${heldTotal()} of ${CAPACITY} tokens used.`;
   }
+
+  if (evictedCount > 0) {
+    revealOnce(windowReveal);
+  }
 }
 
 function resetContextWindow() {
@@ -264,6 +287,7 @@ function step() {
     transcript.innerHTML = "";
     resetLanes();
     resetContextWindow();
+    resetReveals();
     stepButton.textContent = "Step →";
     caption.textContent = 'Click "Step" to send the first message.';
     return;
@@ -276,8 +300,13 @@ function step() {
   caption.textContent = turn.caption;
   turnIndex += 1;
 
+  if (turn.role === "user") {
+    revealOnce(bundle);
+  }
+
   if (turnIndex >= TURNS.length) {
     stepButton.textContent = "Restart";
+    revealOnce(loopReveal);
   }
 }
 
