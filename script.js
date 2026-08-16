@@ -618,6 +618,7 @@ function checkQuiz() {
   quizResult.hidden = false;
   quizResult.getBoundingClientRect();
   requestAnimationFrame(() => quizResult.classList.add("visible"));
+  quizResult.focus();
 
   quizCheckBtn.hidden = true;
   quizRestartBtn.hidden = false;
@@ -639,12 +640,46 @@ function resetQuiz() {
 
 quizQuestions.forEach(shuffleOptions);
 
-quizCheckBtn.addEventListener("click", checkQuiz);
-quizRestartBtn.addEventListener("click", resetQuiz);
-quizResultClose.addEventListener("click", () => {
+function closeQuizResult() {
   quizResult.classList.remove("visible");
   quizResult.hidden = true;
   (quizRestartBtn.hidden ? quizCheckBtn : quizRestartBtn).focus();
+}
+
+// A dialog with role="dialog"/aria-modal="true" implies focus stays inside
+// it while open — Tab/Shift+Tab must wrap between its own focusable
+// elements instead of escaping to the (disabled-but-present) page behind.
+function focusableIn(container) {
+  return [...container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(
+    (el) => !el.disabled,
+  );
+}
+
+quizCheckBtn.addEventListener("click", checkQuiz);
+quizRestartBtn.addEventListener("click", resetQuiz);
+quizResultClose.addEventListener("click", closeQuizResult);
+quizResult.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeQuizResult();
+    return;
+  }
+  if (event.key !== "Tab") {
+    return;
+  }
+  const focusable = focusableIn(quizResult);
+  if (focusable.length === 0) {
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 function step() {

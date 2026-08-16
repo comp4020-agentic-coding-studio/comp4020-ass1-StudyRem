@@ -163,6 +163,24 @@ describe("core interaction: stepping the tool-call loop", () => {
     expect(wrongList?.children.length).toBe(2);
   });
 
+  it("moves focus into the result dialog when it opens, and closes on Escape", async () => {
+    const window = await loadPage();
+
+    selectQuizAnswer(window, "stateless", true);
+    selectQuizAnswer(window, "capacity", true);
+    selectQuizAnswer(window, "gotcha", true);
+    selectQuizAnswer(window, "mitigation", true);
+    click(window, "quiz-check-btn");
+
+    const result = window.document.getElementById("quiz-result") as HTMLElement;
+    expect(window.document.activeElement).toBe(result);
+
+    result.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(result.hidden).toBe(true);
+    expect(window.document.activeElement).toBe(window.document.getElementById("quiz-restart-btn"));
+  });
+
   it("resets the quiz to its initial state on restart", async () => {
     const window = await loadPage();
 
