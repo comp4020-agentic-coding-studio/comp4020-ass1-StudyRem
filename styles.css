@@ -509,9 +509,9 @@ h2 {
 }
 
 .lane-arrow-bar {
-  width: 1.5rem;
-  height: 0.0625rem;
-  background: currentcolor;
+  font-size: 1.4rem;
+  line-height: 1;
+  letter-spacing: -0.1em;
 }
 
 .lane-arrow-head {
