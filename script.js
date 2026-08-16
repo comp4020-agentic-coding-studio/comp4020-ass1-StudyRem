@@ -5,7 +5,7 @@
 const TURNS = [
   {
     role: "user",
-    label: "User",
+    label: "$ user",
     content: "The tests are failing, can you fix it?",
     caption:
       "Your message arrives. It looks like it's the only thing being sent — it isn't.",
@@ -13,7 +13,7 @@ const TURNS = [
   },
   {
     role: "model",
-    label: "Model → tool call",
+    label: "» model (tool call)",
     content: "run_tests()",
     caption:
       "The model replies with a tool call, not code. It's a structured request — the model isn't running anything itself.",
@@ -21,7 +21,7 @@ const TURNS = [
   },
   {
     role: "harness",
-    label: "Harness → result",
+    label: "# harness",
     content: '1 failing: expected sum(2, 3) to be 5, got "23"',
     caption:
       "Something outside the model — the harness — actually ran the tests and captured this result.",
@@ -29,7 +29,7 @@ const TURNS = [
   },
   {
     role: "model",
-    label: "Model → tool call",
+    label: "» model (tool call)",
     content: 'read_file("sum.js")',
     caption:
       "The whole transcript so far goes back to the model, and it asks for another tool.",
@@ -37,42 +37,42 @@ const TURNS = [
   },
   {
     role: "harness",
-    label: "Harness → result",
+    label: "# harness",
     content: "function sum(a, b) {\n  return a + b; // a, b arrive as strings\n}",
     caption: "The harness reads the file and returns its contents as a block.",
     tokens: 22,
   },
   {
     role: "model",
-    label: "Model → tool call",
+    label: "» model (tool call)",
     content: 'edit_file("sum.js", "return Number(a) + Number(b);")',
     caption: "The model proposes a fix — still just a request, not an edit made by the model itself.",
     tokens: 16,
   },
   {
     role: "harness",
-    label: "Harness → result",
+    label: "# harness",
     content: "file updated",
     caption: "The harness applies the edit and confirms it.",
     tokens: 4,
   },
   {
     role: "model",
-    label: "Model → tool call",
+    label: "» model (tool call)",
     content: "run_tests()",
     caption: "The model checks its own work by asking for the tests again.",
     tokens: 4,
   },
   {
     role: "harness",
-    label: "Harness → result",
+    label: "# harness",
     content: "3 passing",
     caption: "The harness runs them and reports back.",
     tokens: 4,
   },
   {
     role: "model",
-    label: "Model → final answer",
+    label: "» model (final answer)",
     content:
       'Fixed it — sum.js was concatenating strings instead of adding numbers. Tests pass now.',
     caption:

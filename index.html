@@ -30,53 +30,65 @@
           </p>
         </div>
 
-        <div class="bundle" id="bundle" hidden>
-          <p class="bundle-caption">
-            What actually goes to the model on <em>every single call</em> —
-            not just whatever's new:
-          </p>
-          <div
-            class="bundle-bar"
-            id="bundle-bar"
-            role="img"
-            aria-label="System prompt 9 tokens, tool definitions 6 tokens, history 0 tokens, this turn 12 tokens"
-          >
-            <div class="bundle-part part-system" style="flex-grow: 9">
-              <span>system prompt<br />9 tok</span>
-            </div>
-            <div class="bundle-part part-tools" style="flex-grow: 6">
-              <span>tool defs<br />6 tok</span>
-            </div>
-            <div class="bundle-part part-history" id="bundle-history" style="flex-grow: 0">
-              <span>history<br /><span id="bundle-history-tok">0</span> tok</span>
-            </div>
-            <div class="bundle-part part-message" id="bundle-new" style="flex-grow: 12">
-              <span>this turn<br /><span id="bundle-new-tok">12</span> tok</span>
-            </div>
+        <div class="term-panel">
+          <div class="term-titlebar">
+            <span class="term-dots">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+            </span>
+            agent-session — bash
           </div>
-          <p class="bundle-note" id="bundle-note">
-            27 tokens went into this call. Only 12 of them are new — the rest
-            is system prompt, tool defs, and everything already said.
-          </p>
-        </div>
+          <div class="term-body">
+            <div class="bundle" id="bundle" hidden>
+              <p class="bundle-caption">
+                What actually goes to the model on <em>every single call</em> —
+                not just whatever's new:
+              </p>
+              <div
+                class="bundle-bar"
+                id="bundle-bar"
+                role="img"
+                aria-label="System prompt 9 tokens, tool definitions 6 tokens, history 0 tokens, this turn 12 tokens"
+              >
+                <div class="bundle-part part-system" style="flex-grow: 9">
+                  <span>system prompt<br />9 tok</span>
+                </div>
+                <div class="bundle-part part-tools" style="flex-grow: 6">
+                  <span>tool defs<br />6 tok</span>
+                </div>
+                <div class="bundle-part part-history" id="bundle-history" style="flex-grow: 0">
+                  <span>history<br /><span id="bundle-history-tok">0</span> tok</span>
+                </div>
+                <div class="bundle-part part-message" id="bundle-new" style="flex-grow: 12">
+                  <span>this turn<br /><span id="bundle-new-tok">12</span> tok</span>
+                </div>
+              </div>
+              <p class="bundle-note" id="bundle-note">
+                27 tokens went into this call. Only 12 of them are new — the rest
+                is system prompt, tool defs, and everything already said.
+              </p>
+            </div>
 
-        <div class="lanes" aria-hidden="true">
-          <div class="lane lane-model">
-            <p class="lane-title">
-              Model <span class="lane-subtitle">stateless — resets every turn</span>
-            </p>
-            <div class="lane-box" id="model-box">—</div>
-          </div>
-          <div class="lane-arrow" id="lane-arrow">→</div>
-          <div class="lane lane-harness">
-            <p class="lane-title">
-              Harness <span class="lane-subtitle">runs the tool, keeps no secrets</span>
-            </p>
-            <div class="lane-box" id="harness-box">—</div>
+            <div class="lanes" aria-hidden="true">
+              <div class="lane lane-model">
+                <p class="lane-title">
+                  » model <span class="lane-subtitle">stateless — resets every turn</span>
+                </p>
+                <div class="lane-box" id="model-box">—</div>
+              </div>
+              <div class="lane-arrow" id="lane-arrow">→</div>
+              <div class="lane lane-harness">
+                <p class="lane-title">
+                  # harness <span class="lane-subtitle">runs the tool, keeps no secrets</span>
+                </p>
+                <div class="lane-box" id="harness-box">—</div>
+              </div>
+            </div>
+
+            <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
           </div>
         </div>
-
-        <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
 
         <p class="reveal reveal-loop" id="loop-reveal" aria-live="polite" hidden>
           <strong>Notice:</strong> the model had no memory between any of
@@ -123,27 +135,39 @@
           </li>
         </ul>
 
-        <p class="window-caption" id="window-caption" aria-live="polite">
-          The window always carries a fixed cost before your first message
-          even arrives.
-        </p>
-
-        <div
-          class="context-bar"
-          id="context-bar"
-          role="img"
-          aria-label="Fixed-size context window, filling automatically on a loop; oldest turns compact into stubs once it's full"
-        >
-          <div class="chunk chunk-baseline" id="chunk-baseline" style="flex-grow: 15">
-            <span class="chunk-label">system + tools</span>
+        <div class="term-panel">
+          <div class="term-titlebar">
+            <span class="term-dots">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+            </span>
+            context-window — bash
           </div>
-          <div class="chunk-spacer" id="chunk-spacer" aria-hidden="true" style="flex-grow: 55"></div>
-        </div>
+          <div class="term-body">
+            <p class="window-caption" id="window-caption" aria-live="polite">
+              The window always carries a fixed cost before your first message
+              even arrives.
+            </p>
 
-        <p class="window-readout" id="window-readout">
-          Holding <strong id="tokens-held">15</strong> tokens (capacity 70) —
-          would be <strong id="tokens-raw">15</strong> without compaction.
-        </p>
+            <div
+              class="context-bar"
+              id="context-bar"
+              role="img"
+              aria-label="Fixed-size context window, filling automatically on a loop; oldest turns compact into stubs once it's full"
+            >
+              <div class="chunk chunk-baseline" id="chunk-baseline" style="flex-grow: 15">
+                <span class="chunk-label">system + tools</span>
+              </div>
+              <div class="chunk-spacer" id="chunk-spacer" aria-hidden="true" style="flex-grow: 55"></div>
+            </div>
+
+            <p class="window-readout" id="window-readout">
+              Holding <strong id="tokens-held">15</strong> tokens (capacity 70) —
+              would be <strong id="tokens-raw">15</strong> without compaction.
+            </p>
+          </div>
+        </div>
 
         <p class="reveal reveal-window" id="window-reveal" aria-live="polite" hidden>
           <strong>That's compaction:</strong> cheaper, but not free. Whatever
