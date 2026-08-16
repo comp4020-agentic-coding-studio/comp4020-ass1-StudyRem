@@ -228,7 +228,7 @@ function updateBundle(index) {
   bundleNew.style.flexGrow = String(newTokens);
   bundleNew.className = `bundle-part part-message role-${turn.role}`;
   bundleNew.title = `${turn.label} — ${newTokens} tok`;
-  bundleNote.textContent = `9 system + 6 tool defs + ${historyTokens} history + ${newTokens} this turn = ${total} tokens total — only ${newTokens} of them are new.`;
+  bundleNote.textContent = `What's changing: +${newTokens} tokens this turn (${turn.role}). Everything else — 9 system + 6 tool defs + ${historyTokens} history — is just carried along again, for a total of ${total}.`;
   bundleBar.setAttribute(
     "aria-label",
     `System prompt 9 tokens, tool definitions 6 tokens, history ${historyTokens} tokens, this turn ${newTokens} tokens`,
@@ -293,13 +293,13 @@ function updateContextWindow(turn) {
   tokensRawEl.textContent = String(rawTotal());
   chunkSpacer.style.flexGrow = String(Math.max(0, CAPACITY - heldTotal()));
 
+  const addedLine = `What's changing: +${turn.tokens} tokens just added (${turn.role}).`;
   if (evictedCount === 1) {
-    windowCaption.textContent =
-      "The window's full: the oldest turn just got compacted down to a stub to make room.";
+    windowCaption.textContent = `${addedLine} Window's full — the oldest turn just got compacted down to a stub to make room.`;
   } else if (evictedCount > 1) {
-    windowCaption.textContent = `The window's full: ${evictedCount} older turns just got compacted down to stubs to make room.`;
+    windowCaption.textContent = `${addedLine} Window's full — ${evictedCount} older turns just got compacted down to stubs to make room.`;
   } else {
-    windowCaption.textContent = `Holding steady — ${heldTotal()} of ${CAPACITY} tokens used.`;
+    windowCaption.textContent = `${addedLine} Holding steady — ${heldTotal()} of ${CAPACITY} tokens used.`;
   }
 
   if (evictedCount > 0) {
