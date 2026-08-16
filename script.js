@@ -102,6 +102,17 @@ const windowReveal = document.getElementById("window-reveal");
 const speedDownBtn = document.getElementById("speed-down-btn");
 const speedUpBtn = document.getElementById("speed-up-btn");
 const ambientSpeedEl = document.getElementById("ambient-speed");
+const gotchaCaption = document.getElementById("gotcha-caption");
+const gotchaBar = document.getElementById("gotcha-bar");
+const gotchaSpacer = document.getElementById("gotcha-spacer");
+const gotchaHeldEl = document.getElementById("gotcha-held");
+const gotchaStepBtn = document.getElementById("gotcha-step-btn");
+const gotchaReveal = document.getElementById("gotcha-reveal");
+const calcInput = document.getElementById("calc-turns");
+const calcTurnsValueEl = document.getElementById("calc-turns-value");
+const calcNaiveEl = document.getElementById("calc-naive");
+const calcWindowedEl = document.getElementById("calc-windowed");
+const calcRatioEl = document.getElementById("calc-ratio");
 
 let turnIndex = 0;
 
@@ -116,6 +127,75 @@ const BASELINE_TOKENS = 15;
 const CAPACITY = 70;
 const STUB_TOKENS = 2;
 const windowChunks = [];
+
+// The gotcha: a separate, manually-stepped fixed window with its own short
+// scenario, sized so the "rule" turn is compacted well before the "mistake"
+// turn plays — a felt consequence, not just an abstract "it forgets things."
+const GOTCHA_TURNS = [
+  {
+    role: "user",
+    tag: "rule",
+    label: "$ user",
+    content: "One thing — don't touch config/prod.yaml, ops manages that by hand.",
+    caption: "A rule, stated once. Nothing marks it as special — it's just another turn in the window.",
+    tokens: 11,
+  },
+  {
+    role: "user",
+    label: "$ user",
+    content: "Bump the request-retry timeout from 3s to 8s everywhere it's configured.",
+    caption: "The actual task arrives next.",
+    tokens: 14,
+  },
+  {
+    role: "model",
+    label: "» model (tool call)",
+    content: 'edit_file("config/dev.yaml", ...)',
+    caption: "The model starts with dev.",
+    tokens: 8,
+  },
+  {
+    role: "harness",
+    label: "# harness",
+    content: "file updated",
+    caption: "Applied, no questions asked.",
+    tokens: 8,
+  },
+  {
+    role: "model",
+    label: "» model (tool call)",
+    content: 'edit_file("config/staging.yaml", ...)',
+    caption: "Then staging.",
+    tokens: 8,
+  },
+  {
+    role: "harness",
+    label: "# harness",
+    content: "file updated",
+    caption: "Updated.",
+    tokens: 8,
+  },
+  {
+    role: "model",
+    tag: "mistake",
+    label: "» model (tool call)",
+    content: 'edit_file("config/prod.yaml", ...)',
+    caption: "And now prod — the one file it was told to leave alone.",
+    tokens: 8,
+  },
+  {
+    role: "harness",
+    label: "# harness",
+    content: "file updated",
+    caption: "The harness doesn't know about the rule either — it just runs what it's asked.",
+    tokens: 6,
+  },
+];
+const GOTCHA_BASELINE = 6;
+const GOTCHA_CAPACITY = 45;
+const GOTCHA_STUB = 2;
+const gotchaChunks = [];
+let gotchaIndex = 0;
 
 // Model box always blanks-then-refills, whichever turn it is: the model has
 // no memory of its own last turn, so the sketch has to look "reset" every
@@ -334,6 +414,106 @@ function resetContextWindow() {
   windowCaption.textContent =
     "The window always carries a fixed cost before your first message even arrives.";
 }
+
+function gotchaHeldTotal() {
+  return (
+    GOTCHA_BASELINE +
+    gotchaChunks.reduce((sum, chunk) => sum + (chunk.evicted ? GOTCHA_STUB : chunk.tokens), 0)
+  );
+}
+
+function gotchaOldestLive() {
+  return gotchaChunks.find((chunk) => !chunk.evicted);
+}
+
+function addGotchaChunk(turn) {
+  const el = document.createElement("div");
+  const tagClass = turn.tag ? ` chunk-${turn.tag}` : "";
+  el.className = `chunk role-${turn.role}${tagClass}`;
+  el.style.flexGrow = "0";
+  const change = readableChange(turn);
+  el.title = `${change} — ${turn.tokens} tok`;
+
+  gotchaBar.insertBefore(el, gotchaSpacer);
+
+  el.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    el.style.flexGrow = String(turn.tokens);
+  });
+  flash(el, turn.tag === "mistake" ? "flash-mistake" : "flash-new");
+
+  const chunk = { tokens: turn.tokens, evicted: false, el, change };
+  gotchaChunks.push(chunk);
+  return chunk;
+}
+
+function gotchaStep() {
+  if (gotchaIndex >= GOTCHA_TURNS.length) {
+    gotchaChunks.forEach((chunk) => chunk.el.remove());
+    gotchaChunks.length = 0;
+    gotchaIndex = 0;
+    gotchaHeldEl.textContent = String(GOTCHA_BASELINE);
+    gotchaSpacer.style.flexGrow = String(GOTCHA_CAPACITY - GOTCHA_BASELINE);
+    gotchaCaption.textContent = 'Click "Step" to send the first message.';
+    gotchaStepBtn.textContent = "Step →";
+    gotchaReveal.hidden = true;
+    gotchaReveal.classList.remove("visible");
+    return;
+  }
+
+  const turn = GOTCHA_TURNS[gotchaIndex];
+  const justAdded = addGotchaChunk(turn);
+
+  while (gotchaHeldTotal() > GOTCHA_CAPACITY) {
+    const oldest = gotchaOldestLive();
+    if (!oldest || oldest === justAdded) {
+      break;
+    }
+    oldest.evicted = true;
+    oldest.el.classList.add("evicted");
+    oldest.el.style.flexGrow = String(GOTCHA_STUB);
+    oldest.el.title = `${oldest.change} (compacted)`;
+    flash(oldest.el, "flash-evicted");
+  }
+
+  gotchaHeldEl.textContent = String(gotchaHeldTotal());
+  gotchaSpacer.style.flexGrow = String(Math.max(0, GOTCHA_CAPACITY - gotchaHeldTotal()));
+  gotchaCaption.textContent = turn.caption;
+  gotchaIndex += 1;
+
+  if (turn.tag === "mistake") {
+    revealOnce(gotchaReveal);
+  }
+
+  if (gotchaIndex >= GOTCHA_TURNS.length) {
+    gotchaStepBtn.textContent = "Restart";
+  }
+}
+
+gotchaStepBtn.addEventListener("click", gotchaStep);
+
+// Cost calculator: reuses Act 2's own BASELINE_TOKENS/CAPACITY so the
+// "70-token window" here is honestly the same number the visitor just
+// watched fill above, not a made-up figure.
+const AVG_TOKENS = Math.round(TURNS.reduce((sum, turn) => sum + turn.tokens, 0) / TURNS.length);
+
+function updateCalculator() {
+  const turns = Number(calcInput.value);
+  let naive = 0;
+  let windowed = 0;
+  for (let i = 1; i <= turns; i += 1) {
+    const callTokens = BASELINE_TOKENS + i * AVG_TOKENS;
+    naive += callTokens;
+    windowed += Math.min(callTokens, CAPACITY);
+  }
+  calcTurnsValueEl.textContent = String(turns);
+  calcNaiveEl.textContent = naive.toLocaleString();
+  calcWindowedEl.textContent = windowed.toLocaleString();
+  calcRatioEl.textContent = `${(naive / windowed).toFixed(1)}×`;
+}
+
+calcInput.addEventListener("input", updateCalculator);
+updateCalculator();
 
 function step() {
   if (turnIndex >= TURNS.length) {

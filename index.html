@@ -12,6 +12,9 @@
       <ul>
         <li><a href="#loop-demo">The loop</a></li>
         <li><a href="#context-window">Why it can't run forever</a></li>
+        <li><a href="#gotcha">What it forgets</a></li>
+        <li><a href="#cost-calculator">The real cost</a></li>
+        <li><a href="#mitigations">The fixes</a></li>
       </ul>
     </nav>
     <main>
@@ -140,9 +143,8 @@
             to pay.
           </li>
           <li>
-            <strong>The fix:</strong> truncate old tool output,
-            summarise/compact history, or move things to files instead of
-            live context.
+            <strong>The fix:</strong> several, actually — more on that
+            further down.
           </li>
         </ul>
 
@@ -220,13 +222,152 @@
         </p>
       </section>
 
+      <section class="gotcha" id="gotcha" aria-label="Context eviction demo">
+        <h2>What does it actually forget?</h2>
+        <p>
+          Same window as above, on a real task — this time stepped by hand,
+          so you can catch the exact moment eviction costs something.
+        </p>
+
+        <div class="term-panel">
+          <div class="term-titlebar">
+            <span class="term-dots">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+            </span>
+            config-edit — bash
+          </div>
+          <div class="term-body">
+            <p class="window-caption" id="gotcha-caption" aria-live="polite">
+              Click "Step" to send the first message.
+            </p>
+
+            <ul class="bar-legend" aria-hidden="true">
+              <li><span class="swatch swatch-user"></span>user</li>
+              <li><span class="swatch swatch-model"></span>model</li>
+              <li><span class="swatch swatch-harness"></span>harness</li>
+              <li><span class="swatch swatch-muted"></span>compacted</li>
+            </ul>
+
+            <div
+              class="context-bar"
+              id="gotcha-bar"
+              role="img"
+              aria-label="Fixed-size context window for a config-edit task; the rule stated at the start gets compacted before the model reaches the file it was told to leave alone"
+            >
+              <div
+                class="chunk chunk-baseline"
+                id="gotcha-chunk-baseline"
+                style="flex-grow: 6"
+                title="system + tools — 6 tok"
+              ></div>
+              <div class="chunk-spacer" id="gotcha-spacer" aria-hidden="true" style="flex-grow: 39"></div>
+            </div>
+
+            <p class="window-readout">
+              Holding <strong id="gotcha-held">6</strong> of 45 tokens.
+            </p>
+
+            <div class="loop-controls">
+              <button
+                id="gotcha-step-btn"
+                class="term-btn"
+                type="button"
+                data-testid="gotcha-step-button"
+              >
+                Step →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="reveal reveal-window" id="gotcha-reveal" aria-live="polite" hidden>
+          <strong>That's the cost:</strong> the model didn't disobey the
+          rule — it never saw it. By the time it reached
+          <code>prod.yaml</code>, that first message had already been
+          compacted into a stub. A stub only says a turn happened, not what
+          it said.
+        </p>
+      </section>
+
+      <section class="cost-calculator" id="cost-calculator" aria-label="Cost calculator">
+        <h2>How much does this actually cost?</h2>
+        <p>
+          With no window at all, every extra turn re-reads — and re-bills —
+          every turn that came before it, every single call. Drag this to
+          see how fast that adds up, and how much a fixed window like the
+          one above actually saves. It's a rough model, not an exact bill —
+          real pricing depends on the provider and the model.
+        </p>
+
+        <div class="term-panel">
+          <div class="term-titlebar">
+            <span class="term-dots">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+            </span>
+            token-ledger — bash
+          </div>
+          <div class="term-body">
+            <label class="window-caption" for="calc-turns">
+              Turns in the session: <strong id="calc-turns-value">10</strong>
+            </label>
+            <input type="range" id="calc-turns" min="1" max="50" value="10" />
+
+            <p class="window-readout" aria-live="polite">
+              No window: <strong id="calc-naive">…</strong> tokens billed in
+              total.<br />
+              70-token window: <strong id="calc-windowed">…</strong> tokens
+              billed — <strong id="calc-ratio">…</strong> less.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mitigations" id="mitigations" aria-label="Mitigations">
+        <h2>So what do real agents actually do?</h2>
+        <p>
+          None of this is exotic — every serious agent harness carries some
+          combination of these, usually more than one at once:
+        </p>
+        <ul class="reasons">
+          <li>
+            <strong>Truncate old tool output</strong> — keep the last N
+            lines of a huge log or diff instead of the whole thing; most of
+            it was never going to matter again.
+          </li>
+          <li>
+            <strong>Summarise or compact history</strong> — when the window
+            fills, collapse older turns into a shorter summary instead of a
+            bare stub, so at least the gist survives eviction.
+          </li>
+          <li>
+            <strong>Retrieve instead of carrying everything live</strong> —
+            keep the bulk of a codebase or document set out of context
+            entirely, and pull in only the parts a search says are relevant
+            to this turn (RAG).
+          </li>
+          <li>
+            <strong>Delegate to sub-agents</strong> — hand a big,
+            self-contained chunk of work to a fresh context of its own, and
+            bring back only its final answer, not its whole working
+            transcript.
+          </li>
+          <li>
+            <strong>Offload to files</strong> — write intermediate results
+            to disk and re-read them on demand, so they exist without
+            occupying the live window the whole time.
+          </li>
+        </ul>
+      </section>
+
       <p class="closing">
-        This is why real agent harnesses quietly summarise, truncate, or move
-        history to files — not as a nicety, but because the alternative is a
-        context window that either bankrupts you or forgets the part that
-        mattered. What looks like memory in an agent session isn't memory at
-        all. It's a transcript, replayed in full, until someone decides what
-        to cut.
+        None of that is a nicety — the alternative is a context window that
+        either bankrupts you or forgets the part that mattered. What looks
+        like memory in an agent session isn't memory at all. It's a
+        transcript, replayed in full, until someone decides what to cut.
       </p>
     </main>
     <script src="./script.js"></script>

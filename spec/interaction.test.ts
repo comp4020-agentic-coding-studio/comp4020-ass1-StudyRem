@@ -94,4 +94,29 @@ describe("core interaction: stepping the tool-call loop", () => {
 
     expect(label?.textContent).not.toBe(before);
   });
+
+  it("reveals the gotcha explainer once the scripted mistake turn plays", async () => {
+    const window = await loadPage();
+    const reveal = window.document.getElementById("gotcha-reveal");
+
+    expect((reveal as HTMLElement)?.hidden).toBe(true);
+
+    for (let i = 0; i < 7; i += 1) {
+      click(window, "gotcha-step-btn");
+    }
+
+    expect((reveal as HTMLElement)?.hidden).toBe(false);
+  });
+
+  it("updates the cost calculator readout when the slider moves", async () => {
+    const window = await loadPage();
+    const naive = window.document.getElementById("calc-naive");
+    const before = naive?.textContent;
+    const input = window.document.getElementById("calc-turns") as HTMLInputElement;
+
+    input.value = "50";
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+
+    expect(naive?.textContent).not.toBe(before);
+  });
 });
