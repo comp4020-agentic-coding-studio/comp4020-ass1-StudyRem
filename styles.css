@@ -14,3 +14,107 @@ main {
 a {
   color: #0b5fff;
 }
+
+.hook {
+  color: #444;
+}
+
+.loop-demo {
+  margin-top: 2rem;
+}
+
+.loop-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+#step-btn {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: #0b5fff;
+  color: #fff;
+  cursor: pointer;
+}
+
+#step-btn:hover {
+  background: #0847c4;
+}
+
+.loop-caption {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #444;
+  min-height: 2.6em;
+}
+
+.transcript {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+.block {
+  border-left: 0.3rem solid #999;
+  background: #f5f5f7;
+  border-radius: 0.3rem;
+  padding: 0.6rem 0.9rem;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.block.entering {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+.block-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+}
+
+.block-content {
+  margin: 0;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.role-user {
+  border-left-color: #0b5fff;
+}
+
+.role-user .block-label {
+  color: #0b5fff;
+}
+
+.role-model {
+  border-left-color: #7c3aed;
+}
+
+.role-model .block-label {
+  color: #7c3aed;
+}
+
+.role-harness {
+  border-left-color: #0a8f5b;
+}
+
+.role-harness .block-label {
+  color: #0a8f5b;
+}

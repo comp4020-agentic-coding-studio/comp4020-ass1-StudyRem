@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COMP4020 prototype</title>
+    <title>What's actually in the loop? — an agent tool-call explainer</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,11 +13,25 @@
       </nav>
     </header>
     <main>
-      <h1>COMP4020 prototype</h1>
-      <p data-testid="intro">
-        Replace this with your prototype. This week's brief is on the course website;
-        <code>spec/README.md</code> explains how the checks in this repo relate to it.
+      <h1>What's actually happening in that agent loop?</h1>
+      <p class="hook">
+        You've watched an agent "think" for thirty seconds and use six tools.
+        What actually happened in that time? Step through one real loop,
+        one turn at a time.
       </p>
+
+      <section class="loop-demo" aria-label="Agent tool-call loop demo">
+        <div class="loop-controls">
+          <button id="step-btn" type="button" data-testid="step-button">
+            Step →
+          </button>
+          <p class="loop-caption" id="loop-caption" aria-live="polite">
+            Click "Step" to send the first message.
+          </p>
+        </div>
+
+        <ol class="transcript" id="transcript" aria-label="Conversation transcript" data-testid="transcript"></ol>
+      </section>
     </main>
     <script type="module" src="./script.js"></script>
   </body>
