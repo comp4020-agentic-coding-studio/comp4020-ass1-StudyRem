@@ -74,8 +74,65 @@ const TURNS = [
 const stepButton = document.getElementById("step-btn");
 const caption = document.getElementById("loop-caption");
 const transcript = document.getElementById("transcript");
+const modelBox = document.getElementById("model-box");
+const harnessBox = document.getElementById("harness-box");
+const laneArrow = document.getElementById("lane-arrow");
 
 let turnIndex = 0;
+
+const RESET_FLASH_MS = 220;
+const ARROW_FIRE_MS = 600;
+
+// Model box always blanks-then-refills, whichever turn it is: the model has
+// no memory of its own last turn, so the sketch has to look "reset" every
+// single time, not just visually update.
+function resetAndFill(el, content) {
+  el.classList.add("resetting");
+  el.getBoundingClientRect();
+  setTimeout(() => {
+    el.textContent = content;
+    el.classList.remove("resetting");
+  }, RESET_FLASH_MS);
+}
+
+function fireArrow() {
+  laneArrow.classList.remove("firing");
+  laneArrow.getBoundingClientRect();
+  laneArrow.classList.add("firing");
+  setTimeout(() => laneArrow.classList.remove("firing"), ARROW_FIRE_MS);
+}
+
+function updateLanes(turn) {
+  if (turn.role === "user") {
+    return;
+  }
+
+  if (turn.role === "model") {
+    resetAndFill(modelBox, turn.content);
+    const isToolCall = turn.label.includes("tool call");
+    if (isToolCall) {
+      harnessBox.textContent = "…running";
+      harnessBox.classList.add("pending");
+      fireArrow();
+    } else {
+      harnessBox.textContent = "(not called — no tool needed)";
+      harnessBox.classList.remove("pending");
+    }
+    return;
+  }
+
+  // turn.role === "harness"
+  harnessBox.classList.remove("pending");
+  harnessBox.textContent = turn.content;
+}
+
+function resetLanes() {
+  modelBox.textContent = "—";
+  modelBox.classList.remove("resetting");
+  harnessBox.textContent = "—";
+  harnessBox.classList.remove("pending");
+  laneArrow.classList.remove("firing");
+}
 
 function appendTurn(turn) {
   const item = document.createElement("li");
@@ -104,6 +161,7 @@ function step() {
   if (turnIndex >= TURNS.length) {
     turnIndex = 0;
     transcript.innerHTML = "";
+    resetLanes();
     stepButton.textContent = "Step →";
     caption.textContent = 'Click "Step" to send the first message.';
     return;
@@ -111,6 +169,7 @@ function step() {
 
   const turn = TURNS[turnIndex];
   appendTurn(turn);
+  updateLanes(turn);
   caption.textContent = turn.caption;
   turnIndex += 1;
 
