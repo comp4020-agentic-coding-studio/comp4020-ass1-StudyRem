@@ -95,10 +95,12 @@ a {
 }
 
 .bundle-part span {
+  flex-shrink: 0;
   font-size: 0.65rem;
   font-weight: 600;
   color: #fff;
   line-height: 1.2;
+  transition: opacity 0.2s ease;
 }
 
 .part-system {
@@ -119,6 +121,10 @@ a {
 
 .part-message {
   background: #0b5fff;
+}
+
+.bundle-part.label-cramped span {
+  opacity: 0;
 }
 
 .bundle-note {
@@ -387,12 +393,18 @@ a {
 }
 
 .chunk-label {
+  flex-shrink: 0;
   font-size: 0.65rem;
   font-weight: 600;
   color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.2s ease;
+}
+
+.chunk.label-cramped .chunk-label {
+  opacity: 0;
 }
 
 .chunk-spacer {

@@ -89,6 +89,7 @@ const harnessBox = document.getElementById("harness-box");
 const laneArrow = document.getElementById("lane-arrow");
 const contextBar = document.getElementById("context-bar");
 const chunkSpacer = document.getElementById("chunk-spacer");
+const chunkBaseline = document.getElementById("chunk-baseline");
 const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
@@ -176,11 +177,35 @@ function revealOnce(el) {
 }
 
 function resetReveals() {
-  [bundle, loopReveal, windowReveal].forEach((el) => {
+  // windowReveal belongs to Act 2's own ambient loop, not Act 1's restart —
+  // it stays visible once shown instead of hiding every time Step loops back.
+  [bundle, loopReveal].forEach((el) => {
     el.hidden = true;
     el.classList.remove("visible");
   });
 }
+
+// A bar segment too narrow to hold its label used to clip into a jagged
+// "..." — fade the text out instead the moment it would no longer fit on
+// its own line, rather than showing a half-cut label. Compare the label's
+// natural (unwrapped) width against the space actually available: overflow
+// on the ancestor clips painting, not layout, so the label's own rect still
+// reports its true width even while visually cut off.
+const labelFitObserver =
+  typeof ResizeObserver === "undefined"
+    ? { observe() {}, unobserve() {} }
+    : new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const label = entry.target.querySelector(".chunk-label, span");
+          const cramped = label
+            ? label.getBoundingClientRect().width > entry.contentRect.width
+            : false;
+          entry.target.classList.toggle("label-cramped", cramped);
+        }
+      });
+
+document.querySelectorAll(".bundle-part").forEach((el) => labelFitObserver.observe(el));
+labelFitObserver.observe(chunkBaseline);
 
 function appendTurn(turn) {
   const item = document.createElement("li");
@@ -216,7 +241,7 @@ function updateBundle(index) {
   bundleNew.style.flexGrow = String(newTokens);
   bundleHistoryTok.textContent = String(historyTokens);
   bundleNewTok.textContent = String(newTokens);
-  bundleNote.textContent = `${total} tokens went into this call. Only ${newTokens} of them are new — the rest is system prompt, tool defs, and everything already said.`;
+  bundleNote.textContent = `9 system + 6 tool defs + ${historyTokens} history + ${newTokens} this turn = ${total} tokens total — only ${newTokens} of them are new.`;
   bundleBar.setAttribute(
     "aria-label",
     `System prompt 9 tokens, tool definitions 6 tokens, history ${historyTokens} tokens, this turn ${newTokens} tokens`,
@@ -249,6 +274,7 @@ function addChunk(turn) {
   el.append(label);
 
   contextBar.insertBefore(el, chunkSpacer);
+  labelFitObserver.observe(el);
 
   // Same force-reflow trick as the transcript blocks: start at 0 so the
   // grow-in to its real width actually animates.
@@ -297,7 +323,10 @@ function updateContextWindow(turn) {
 }
 
 function resetContextWindow() {
-  windowChunks.forEach((chunk) => chunk.el.remove());
+  windowChunks.forEach((chunk) => {
+    labelFitObserver.unobserve(chunk.el);
+    chunk.el.remove();
+  });
   windowChunks.length = 0;
   tokensHeldEl.textContent = String(BASELINE_TOKENS);
   tokensRawEl.textContent = String(BASELINE_TOKENS);
@@ -311,7 +340,6 @@ function step() {
     turnIndex = 0;
     transcript.innerHTML = "";
     resetLanes();
-    resetContextWindow();
     resetReveals();
     stepButton.textContent = "Step →";
     caption.textContent = 'Click "Step" to send the first message.';
@@ -321,7 +349,6 @@ function step() {
   const turn = TURNS[turnIndex];
   appendTurn(turn);
   updateLanes(turn);
-  updateContextWindow(turn);
   updateBundle(turnIndex);
   revealOnce(bundle);
   caption.textContent = turn.caption;
@@ -334,3 +361,22 @@ function step() {
 }
 
 stepButton.addEventListener("click", step);
+
+// Act 2 runs as its own ambient loop, decoupled from Act 1's Step button —
+// it's here to show "the window fills, evicts, repeats" on its own
+// timeline, not to mirror every click Act 1 gets.
+const AMBIENT_STEP_MS = 900;
+let ambientIndex = 0;
+
+function ambientTick() {
+  if (ambientIndex >= TURNS.length) {
+    resetContextWindow();
+    ambientIndex = 0;
+    return;
+  }
+  updateContextWindow(TURNS[ambientIndex]);
+  ambientIndex += 1;
+}
+
+resetContextWindow();
+setInterval(ambientTick, AMBIENT_STEP_MS);

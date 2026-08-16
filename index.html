@@ -91,8 +91,8 @@
         <p>
           Every step above didn't just add one block — the model re-read the
           <em>whole</em> transcript, every time, from scratch. That doesn't
-          scale. Keep clicking "Step" and watch what a fixed-size context
-          window does to the same steps.
+          scale. Here's the same loop, running on its own against a
+          fixed-size context window:
         </p>
 
         <ul class="reasons">
@@ -132,7 +132,7 @@
           class="context-bar"
           id="context-bar"
           role="img"
-          aria-label="Fixed-size context window, filling as the loop steps; oldest turns compact into stubs once it's full"
+          aria-label="Fixed-size context window, filling automatically on a loop; oldest turns compact into stubs once it's full"
         >
           <div class="chunk chunk-baseline" id="chunk-baseline" style="flex-grow: 15">
             <span class="chunk-label">system + tools</span>

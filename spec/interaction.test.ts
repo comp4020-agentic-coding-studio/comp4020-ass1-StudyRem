@@ -75,12 +75,12 @@ describe("core interaction: stepping the tool-call loop", () => {
     expect(button?.textContent?.trim()).toBe("Step →");
   });
 
-  it("also grows the context-window token count as the direct-consequence mechanic", async () => {
+  it("grows the context-window token count on its own ambient loop, independent of Step clicks", async () => {
     const window = await loadPage();
     const held = window.document.getElementById("tokens-held");
     const before = Number(held?.textContent);
 
-    click(window, "step-btn");
+    await new Promise((r) => setTimeout(r, 1000));
 
     expect(Number(held?.textContent)).toBeGreaterThan(before);
   });
