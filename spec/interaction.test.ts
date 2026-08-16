@@ -120,10 +120,12 @@ describe("core interaction: stepping the tool-call loop", () => {
     expect(naive?.textContent).not.toBe(before);
   });
 
-  function selectQuizAnswer(window: DOMWindow, qid: string, choiceIndex: number) {
+  // Options are shuffled on load (script.js: shuffleOptions), so select by
+  // correctness rather than position.
+  function selectQuizAnswer(window: DOMWindow, qid: string, correct: boolean) {
     const question = window.document.querySelector(`[data-qid="${qid}"]`);
-    const options = question?.querySelectorAll(".quiz-option");
-    options?.[choiceIndex].dispatchEvent(new window.Event("click", { bubbles: true }));
+    const option = question?.querySelector(`.quiz-option[data-correct="${correct}"]`);
+    option?.dispatchEvent(new window.Event("click", { bubbles: true }));
   }
 
   it("only enables the check button once all four questions have a selection", async () => {
@@ -132,23 +134,23 @@ describe("core interaction: stepping the tool-call loop", () => {
 
     expect(checkBtn.disabled).toBe(true);
 
-    selectQuizAnswer(window, "stateless", 0);
-    selectQuizAnswer(window, "capacity", 0);
-    selectQuizAnswer(window, "gotcha", 0);
+    selectQuizAnswer(window, "stateless", true);
+    selectQuizAnswer(window, "capacity", true);
+    selectQuizAnswer(window, "gotcha", true);
     expect(checkBtn.disabled).toBe(true);
 
-    selectQuizAnswer(window, "mitigation", 0);
+    selectQuizAnswer(window, "mitigation", true);
     expect(checkBtn.disabled).toBe(false);
   });
 
   it("scores the quiz and shows the result box with the wrong ones listed", async () => {
     const window = await loadPage();
 
-    // Known mix: right, wrong, right, wrong (correct option is always index 0).
-    selectQuizAnswer(window, "stateless", 0);
-    selectQuizAnswer(window, "capacity", 1);
-    selectQuizAnswer(window, "gotcha", 0);
-    selectQuizAnswer(window, "mitigation", 1);
+    // Known mix: right, wrong, right, wrong.
+    selectQuizAnswer(window, "stateless", true);
+    selectQuizAnswer(window, "capacity", false);
+    selectQuizAnswer(window, "gotcha", true);
+    selectQuizAnswer(window, "mitigation", false);
 
     click(window, "quiz-check-btn");
 
@@ -164,10 +166,10 @@ describe("core interaction: stepping the tool-call loop", () => {
   it("resets the quiz to its initial state on restart", async () => {
     const window = await loadPage();
 
-    selectQuizAnswer(window, "stateless", 0);
-    selectQuizAnswer(window, "capacity", 0);
-    selectQuizAnswer(window, "gotcha", 0);
-    selectQuizAnswer(window, "mitigation", 0);
+    selectQuizAnswer(window, "stateless", true);
+    selectQuizAnswer(window, "capacity", true);
+    selectQuizAnswer(window, "gotcha", true);
+    selectQuizAnswer(window, "mitigation", true);
     click(window, "quiz-check-btn");
 
     click(window, "quiz-restart-btn");

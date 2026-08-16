@@ -535,6 +535,19 @@ function selectedOption(question) {
   return question.querySelector(".quiz-option.selected");
 }
 
+// Both options carry the same weight in the markup — shuffle so the correct
+// answer isn't always in the same position, otherwise the position itself
+// becomes the answer.
+function shuffleOptions(question) {
+  const container = question.querySelector(".quiz-options");
+  const options = [...container.children];
+  for (let i = options.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  options.forEach((option) => container.append(option));
+}
+
 function updateCheckButton() {
   const allSelected = [...quizQuestions].every((question) => selectedOption(question));
   quizCheckBtn.disabled = !allSelected;
@@ -612,6 +625,7 @@ function checkQuiz() {
 
 function resetQuiz() {
   quizQuestions.forEach((question) => {
+    shuffleOptions(question);
     question.querySelectorAll(".quiz-option").forEach((btn) => {
       btn.disabled = false;
       btn.classList.remove("selected", "correct", "incorrect");
@@ -622,6 +636,8 @@ function resetQuiz() {
   quizRestartBtn.hidden = true;
   updateCheckButton();
 }
+
+quizQuestions.forEach(shuffleOptions);
 
 quizCheckBtn.addEventListener("click", checkQuiz);
 quizRestartBtn.addEventListener("click", resetQuiz);
