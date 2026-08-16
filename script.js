@@ -88,6 +88,7 @@ const modelBox = document.getElementById("model-box");
 const harnessBox = document.getElementById("harness-box");
 const laneArrow = document.getElementById("lane-arrow");
 const contextBar = document.getElementById("context-bar");
+const chunkSpacer = document.getElementById("chunk-spacer");
 const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
@@ -225,7 +226,7 @@ function addChunk(turn) {
   label.textContent = turn.label;
   el.append(label);
 
-  contextBar.append(el);
+  contextBar.insertBefore(el, chunkSpacer);
 
   // Same force-reflow trick as the transcript blocks: start at 0 so the
   // grow-in to its real width actually animates.
@@ -257,6 +258,7 @@ function updateContextWindow(turn) {
 
   tokensHeldEl.textContent = String(heldTotal());
   tokensRawEl.textContent = String(rawTotal());
+  chunkSpacer.style.flexGrow = String(Math.max(0, CAPACITY - heldTotal()));
 
   if (evictedCount === 1) {
     windowCaption.textContent =
@@ -277,6 +279,7 @@ function resetContextWindow() {
   windowChunks.length = 0;
   tokensHeldEl.textContent = String(BASELINE_TOKENS);
   tokensRawEl.textContent = String(BASELINE_TOKENS);
+  chunkSpacer.style.flexGrow = String(CAPACITY - BASELINE_TOKENS);
   windowCaption.textContent =
     "The window always carries a fixed cost before your first message even arrives.";
 }

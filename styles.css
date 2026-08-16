@@ -394,6 +394,13 @@ a {
   text-overflow: ellipsis;
 }
 
+.chunk-spacer {
+  flex-shrink: 0;
+  flex-basis: 0;
+  background: transparent;
+  transition: flex-grow 0.4s ease;
+}
+
 .chunk-baseline {
   background: #666;
   background-image: repeating-linear-gradient(
