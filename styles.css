@@ -36,13 +36,66 @@ main {
   margin: 0 auto;
 }
 
+a {
+  color: var(--accent);
+}
+
+.toc {
+  font-size: 0.85rem;
+  background: var(--bg-panel);
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.3rem;
+  padding: 0.75rem 1rem;
+  max-width: 40rem;
+  margin: 0 auto 1.5rem;
+}
+
+.toc-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.toc a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.toc a:hover,
+.toc a:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Enough side margin beside the centered 40rem main column to float the
+   TOC there without crowding it; below this, it stays a normal block
+   stacked above the content instead. */
+@media (width >= 80rem) {
+  .toc {
+    position: fixed;
+    top: 3rem;
+    left: max(1rem, calc(50% - 32.5rem));
+    width: 10rem;
+    max-width: 10rem;
+    margin: 0;
+  }
+}
+
 h1,
 h2 {
   letter-spacing: -0.01em;
-}
-
-a {
-  color: var(--accent);
 }
 
 .hook {
