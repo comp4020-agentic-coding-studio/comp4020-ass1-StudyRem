@@ -235,8 +235,8 @@ function flash(el, className) {
 
 function updateLanes(turn) {
   if (turn.role === "user") {
-    userBox.textContent = turn.content;
-    userBox.classList.remove("idle");
+    // Already showing this — the user box holds the queued message from
+    // the start, not just from the moment it's sent.
     return;
   }
 
@@ -264,8 +264,7 @@ function resetLanes() {
   modelBox.classList.remove("resetting");
   harnessBox.textContent = "—";
   harnessBox.classList.remove("pending");
-  userBox.textContent = "—";
-  userBox.classList.add("idle");
+  userBox.textContent = TURNS[0].content;
   laneArrow.classList.remove("firing");
 }
 
