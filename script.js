@@ -86,6 +86,7 @@ const caption = document.getElementById("loop-caption");
 const transcript = document.getElementById("transcript");
 const modelBox = document.getElementById("model-box");
 const harnessBox = document.getElementById("harness-box");
+const userBox = document.getElementById("user-box");
 const laneArrow = document.getElementById("lane-arrow");
 const contextBar = document.getElementById("context-bar");
 const chunkSpacer = document.getElementById("chunk-spacer");
@@ -234,6 +235,8 @@ function flash(el, className) {
 
 function updateLanes(turn) {
   if (turn.role === "user") {
+    userBox.textContent = turn.content;
+    userBox.classList.remove("idle");
     return;
   }
 
@@ -261,6 +264,8 @@ function resetLanes() {
   modelBox.classList.remove("resetting");
   harnessBox.textContent = "—";
   harnessBox.classList.remove("pending");
+  userBox.textContent = "—";
+  userBox.classList.add("idle");
   laneArrow.classList.remove("firing");
 }
 

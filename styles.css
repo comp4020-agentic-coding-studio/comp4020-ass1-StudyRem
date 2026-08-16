@@ -475,6 +475,14 @@ h2 {
   color: var(--role-harness);
 }
 
+.lane-user .lane-corner {
+  color: var(--role-user);
+}
+
+.lane-user {
+  margin-top: 1rem;
+}
+
 .lane-box {
   min-height: 4.5rem;
   padding: 0.6rem 0.8rem;
@@ -491,6 +499,10 @@ h2 {
 
 .lane-box.idle {
   color: var(--text-dim);
+  font-style: italic;
+}
+
+.lane-user .lane-box {
   font-style: italic;
 }
 
