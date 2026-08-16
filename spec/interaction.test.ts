@@ -30,6 +30,34 @@ function click(window: DOMWindow, id: string) {
     ?.dispatchEvent(new window.Event("click", { bubbles: true }));
 }
 
+// jsdom has no matchMedia at all (script.js feature-detects that), so to
+// exercise the prefers-reduced-motion branch we stub one in before the
+// page's own <script> runs.
+async function loadPageWithReducedMotion(): Promise<DOMWindow> {
+  const dom = await JSDOM.fromFile(INDEX, {
+    url: pathToFileURL(INDEX).href,
+    runScripts: "dangerously",
+    resources: "usable",
+    pretendToBeVisual: true,
+    beforeParse(window) {
+      window.matchMedia = ((query: string) => ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        onchange: null,
+        addListener() {},
+        removeListener() {},
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      })) as unknown as typeof window.matchMedia;
+    },
+  });
+  await new Promise((r) => setTimeout(r, 50));
+  return dom.window;
+}
+
 describe("core interaction: stepping the tool-call loop", () => {
   it("starts with an empty transcript", async () => {
     const window = await loadPage();
@@ -84,6 +112,16 @@ describe("core interaction: stepping the tool-call loop", () => {
 
     expect(Number(held?.textContent)).toBeGreaterThan(before);
   }, 10000);
+
+  it("does not auto-start the ambient loop when prefers-reduced-motion is set", async () => {
+    const window = await loadPageWithReducedMotion();
+    const held = window.document.getElementById("tokens-held");
+    const before = held?.textContent;
+
+    await new Promise((r) => setTimeout(r, 1200));
+
+    expect(held?.textContent).toBe(before);
+  });
 
   it("speeds up the ambient loop when the speed-up button is clicked", async () => {
     const window = await loadPage();

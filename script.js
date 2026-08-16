@@ -114,6 +114,13 @@ const calcNaiveEl = document.getElementById("calc-naive");
 const calcWindowedEl = document.getElementById("calc-windowed");
 const calcRatioEl = document.getElementById("calc-ratio");
 
+// Feature-detected rather than called unconditionally: jsdom (the test
+// environment spec/interaction.test.ts runs this file under) doesn't
+// implement matchMedia at all, and an unguarded call would throw before any
+// of the rest of this script runs.
+const prefersReducedMotion =
+  typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 let turnIndex = 0;
 
 const RESET_FLASH_MS = 220;
@@ -296,7 +303,7 @@ function appendTurn(turn) {
   requestAnimationFrame(() => item.classList.remove("entering"));
 
   if (typeof item.scrollIntoView === "function") {
-    item.scrollIntoView({ behavior: "smooth", block: "end" });
+    item.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "end" });
   }
 }
 
@@ -763,4 +770,9 @@ speedUpBtn.addEventListener("click", () => {
 
 updateSpeedControls();
 resetContextWindow();
-restartAmbientTimer();
+if (prefersReducedMotion) {
+  windowCaption.textContent =
+    "Reduced motion is on, so this stays paused — use the speed controls below to start it.";
+} else {
+  restartAmbientTimer();
+}
