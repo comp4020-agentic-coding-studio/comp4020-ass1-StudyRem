@@ -448,7 +448,27 @@
               <p class="quiz-feedback" hidden></p>
             </div>
 
-            <p class="quiz-score" id="quiz-score" aria-live="polite">Score: 0/4</p>
+            <div class="quiz-actions">
+              <button id="quiz-check-btn" class="term-btn" type="button" disabled>Check my answers</button>
+              <button id="quiz-restart-btn" class="term-btn" type="button" hidden>Restart</button>
+              <p class="quiz-hint" id="quiz-hint">Pick an answer for all four, then check.</p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="quiz-result"
+          id="quiz-result"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quiz-result-title"
+          hidden
+        >
+          <div class="quiz-result-box">
+            <h3 id="quiz-result-title">Score: <span id="quiz-result-score">0/4</span></h3>
+            <p class="quiz-result-message" id="quiz-result-message"></p>
+            <ul class="quiz-result-wrong" id="quiz-result-wrong"></ul>
+            <button id="quiz-result-close" class="term-btn" type="button">Close</button>
           </div>
         </div>
       </section>

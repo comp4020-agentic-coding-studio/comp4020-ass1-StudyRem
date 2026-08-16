@@ -516,49 +516,119 @@ calcInput.addEventListener("input", updateCalculator);
 updateCalculator();
 
 // Quiz: one prediction per section above, recapping the same mechanic
-// rather than introducing new material. A single delegated click handler
-// on the section covers all four questions instead of one listener each.
+// rather than introducing new material. Select-then-check, not
+// instant-per-click grading — picking an option only selects it; nothing is
+// graded until "Check my answers" is clicked.
 const quizSection = document.getElementById("quiz");
-const quizScoreEl = document.getElementById("quiz-score");
-const QUIZ_TOTAL = document.querySelectorAll(".quiz-question").length;
-let quizScore = 0;
-let quizAnswered = 0;
+const quizQuestions = document.querySelectorAll(".quiz-question");
+const quizCheckBtn = document.getElementById("quiz-check-btn");
+const quizRestartBtn = document.getElementById("quiz-restart-btn");
+const quizHint = document.getElementById("quiz-hint");
+const quizResult = document.getElementById("quiz-result");
+const quizResultScore = document.getElementById("quiz-result-score");
+const quizResultMessage = document.getElementById("quiz-result-message");
+const quizResultWrong = document.getElementById("quiz-result-wrong");
+const quizResultClose = document.getElementById("quiz-result-close");
+const QUIZ_TOTAL = quizQuestions.length;
+
+function selectedOption(question) {
+  return question.querySelector(".quiz-option.selected");
+}
+
+function updateCheckButton() {
+  const allSelected = [...quizQuestions].every((question) => selectedOption(question));
+  quizCheckBtn.disabled = !allSelected;
+  quizHint.textContent = allSelected
+    ? "All four answered — ready to check."
+    : "Pick an answer for all four, then check.";
+}
 
 quizSection.addEventListener("click", (event) => {
   const option = event.target.closest(".quiz-option");
-  if (!option) {
+  if (!option || option.disabled) {
     return;
   }
-
   const question = option.closest(".quiz-question");
-  if (question.classList.contains("answered")) {
-    return;
-  }
-  question.classList.add("answered");
+  question.querySelectorAll(".quiz-option").forEach((btn) => btn.classList.remove("selected"));
+  option.classList.add("selected");
+  updateCheckButton();
+});
 
-  const options = question.querySelectorAll(".quiz-option");
-  options.forEach((btn) => {
-    btn.disabled = true;
-    if (btn.dataset.correct === "true") {
-      btn.classList.add("correct");
+function quizMessage(score) {
+  if (score === QUIZ_TOTAL) {
+    return "Clean sweep — all four hinge on the same fact, and you had it every time.";
+  }
+  if (score >= QUIZ_TOTAL / 2) {
+    return `${score}/${QUIZ_TOTAL} — close. One of these slipped past the same trick as the others.`;
+  }
+  return `${score}/${QUIZ_TOTAL} — there's a pattern connecting all four. Worth a second pass once you see it.`;
+}
+
+function checkQuiz() {
+  let score = 0;
+  const wrong = [];
+
+  quizQuestions.forEach((question) => {
+    const chosen = selectedOption(question);
+    question.querySelectorAll(".quiz-option").forEach((btn) => {
+      btn.disabled = true;
+      if (btn.dataset.correct === "true") {
+        btn.classList.add("correct");
+      }
+    });
+
+    const isRight = chosen?.dataset.correct === "true";
+    if (isRight) {
+      score += 1;
+    } else {
+      chosen?.classList.add("incorrect");
+      wrong.push({
+        prompt: question.querySelector(".quiz-prompt").textContent.trim(),
+        explanation: question.dataset.explanation,
+      });
     }
+
+    const feedback = question.querySelector(".quiz-feedback");
+    feedback.textContent = question.dataset.explanation;
+    feedback.hidden = false;
   });
 
-  const isRight = option.dataset.correct === "true";
-  if (!isRight) {
-    option.classList.add("incorrect");
-  }
+  quizResultScore.textContent = `${score}/${QUIZ_TOTAL}`;
+  quizResultMessage.textContent = quizMessage(score);
+  quizResultWrong.innerHTML = "";
+  wrong.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = `${item.prompt} — ${item.explanation}`;
+    quizResultWrong.append(li);
+  });
 
-  const feedback = question.querySelector(".quiz-feedback");
-  feedback.textContent = question.dataset.explanation;
-  feedback.hidden = false;
+  quizResult.hidden = false;
+  quizResult.getBoundingClientRect();
+  requestAnimationFrame(() => quizResult.classList.add("visible"));
 
-  quizAnswered += 1;
-  if (isRight) {
-    quizScore += 1;
-  }
-  quizScoreEl.textContent =
-    `Score: ${quizScore}/${QUIZ_TOTAL}` + (quizAnswered === QUIZ_TOTAL ? " — that's all four." : "");
+  quizCheckBtn.hidden = true;
+  quizRestartBtn.hidden = false;
+}
+
+function resetQuiz() {
+  quizQuestions.forEach((question) => {
+    question.querySelectorAll(".quiz-option").forEach((btn) => {
+      btn.disabled = false;
+      btn.classList.remove("selected", "correct", "incorrect");
+    });
+    question.querySelector(".quiz-feedback").hidden = true;
+  });
+  quizCheckBtn.hidden = false;
+  quizRestartBtn.hidden = true;
+  updateCheckButton();
+}
+
+quizCheckBtn.addEventListener("click", checkQuiz);
+quizRestartBtn.addEventListener("click", resetQuiz);
+quizResultClose.addEventListener("click", () => {
+  quizResult.classList.remove("visible");
+  quizResult.hidden = true;
+  (quizRestartBtn.hidden ? quizCheckBtn : quizRestartBtn).focus();
 });
 
 function step() {

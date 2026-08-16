@@ -120,46 +120,70 @@ describe("core interaction: stepping the tool-call loop", () => {
     expect(naive?.textContent).not.toBe(before);
   });
 
-  it("scores a quiz answer and locks the question against a second attempt", async () => {
-    const window = await loadPage();
-    const question = window.document.querySelector('[data-qid="stateless"]');
+  function selectQuizAnswer(window: DOMWindow, qid: string, choiceIndex: number) {
+    const question = window.document.querySelector(`[data-qid="${qid}"]`);
     const options = question?.querySelectorAll(".quiz-option");
-    const feedback = question?.querySelector(".quiz-feedback") as HTMLElement;
-    const scoreEl = window.document.getElementById("quiz-score");
+    options?.[choiceIndex].dispatchEvent(new window.Event("click", { bubbles: true }));
+  }
 
-    expect(scoreEl?.textContent).toBe("Score: 0/4");
+  it("only enables the check button once all four questions have a selection", async () => {
+    const window = await loadPage();
+    const checkBtn = window.document.getElementById("quiz-check-btn") as HTMLButtonElement;
 
-    options?.[0].dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(checkBtn.disabled).toBe(true);
 
-    expect(feedback.hidden).toBe(false);
-    expect(feedback.textContent).not.toBe("");
-    expect(scoreEl?.textContent).toBe("Score: 1/4");
+    selectQuizAnswer(window, "stateless", 0);
+    selectQuizAnswer(window, "capacity", 0);
+    selectQuizAnswer(window, "gotcha", 0);
+    expect(checkBtn.disabled).toBe(true);
 
-    // Second click on the other option in the same question must not count.
-    options?.[1].dispatchEvent(new window.Event("click", { bubbles: true }));
-    expect(scoreEl?.textContent).toBe("Score: 1/4");
+    selectQuizAnswer(window, "mitigation", 0);
+    expect(checkBtn.disabled).toBe(false);
   });
 
-  it("tallies the final score correctly across a mix of right and wrong answers", async () => {
+  it("scores the quiz and shows the result box with the wrong ones listed", async () => {
     const window = await loadPage();
-    const scoreEl = window.document.getElementById("quiz-score");
 
-    // Answer all four questions with a known mix: right, wrong, right, wrong.
-    // The correct option is always index 0, the incorrect one index 1 —
-    // this exercises the running tally, not just a single click.
-    const picks: [string, number][] = [
-      ["stateless", 0],
-      ["capacity", 1],
-      ["gotcha", 0],
-      ["mitigation", 1],
-    ];
+    // Known mix: right, wrong, right, wrong (correct option is always index 0).
+    selectQuizAnswer(window, "stateless", 0);
+    selectQuizAnswer(window, "capacity", 1);
+    selectQuizAnswer(window, "gotcha", 0);
+    selectQuizAnswer(window, "mitigation", 1);
 
-    for (const [qid, choiceIndex] of picks) {
-      const question = window.document.querySelector(`[data-qid="${qid}"]`);
-      const options = question?.querySelectorAll(".quiz-option");
-      options?.[choiceIndex].dispatchEvent(new window.Event("click", { bubbles: true }));
-    }
+    click(window, "quiz-check-btn");
 
-    expect(scoreEl?.textContent).toBe("Score: 2/4 — that's all four.");
+    const result = window.document.getElementById("quiz-result") as HTMLElement;
+    const score = window.document.getElementById("quiz-result-score");
+    const wrongList = window.document.getElementById("quiz-result-wrong");
+
+    expect(result.hidden).toBe(false);
+    expect(score?.textContent).toBe("2/4");
+    expect(wrongList?.children.length).toBe(2);
+  });
+
+  it("resets the quiz to its initial state on restart", async () => {
+    const window = await loadPage();
+
+    selectQuizAnswer(window, "stateless", 0);
+    selectQuizAnswer(window, "capacity", 0);
+    selectQuizAnswer(window, "gotcha", 0);
+    selectQuizAnswer(window, "mitigation", 0);
+    click(window, "quiz-check-btn");
+
+    click(window, "quiz-restart-btn");
+
+    const checkBtn = window.document.getElementById("quiz-check-btn") as HTMLButtonElement;
+    const restartBtn = window.document.getElementById("quiz-restart-btn") as HTMLButtonElement;
+    const allOptions = window.document.querySelectorAll(".quiz-option");
+
+    expect(checkBtn.hidden).toBe(false);
+    expect(checkBtn.disabled).toBe(true);
+    expect(restartBtn.hidden).toBe(true);
+    allOptions.forEach((option) => {
+      expect((option as HTMLButtonElement).disabled).toBe(false);
+      expect(option.classList.contains("selected")).toBe(false);
+      expect(option.classList.contains("correct")).toBe(false);
+      expect(option.classList.contains("incorrect")).toBe(false);
+    });
   });
 });
