@@ -16,6 +16,9 @@
   --role-harness: #f0883e;
   --role-harness-bg: #bd561d;
   --error: #f85149;
+  --font-mono: ui-monospace, sfmono-regular, menlo, consolas, "Liberation Mono", monospace;
+  --font-sans: system-ui, -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
+  --font-display: var(--font-sans);
 }
 
 :focus-visible {
@@ -39,10 +42,18 @@
 body {
   margin: 0;
   padding: 2rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-sans);
   line-height: 1.6;
   color: var(--text);
   background: var(--bg);
+}
+
+/* The terminal chrome (transcript, buttons, bars, the quiz's own panel and
+   its result popup) stays monospace — everything else (headings, prose,
+   the reveal callouts) reads as body text, not terminal output. */
+.term-panel,
+.quiz-result-box {
+  font-family: var(--font-mono);
 }
 
 main {
@@ -109,7 +120,21 @@ a {
 
 h1,
 h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: 2.5rem;
 }
 
 .hook {
