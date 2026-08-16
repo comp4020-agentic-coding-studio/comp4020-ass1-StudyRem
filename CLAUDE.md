@@ -29,12 +29,50 @@ and see `spec/README.md` for how the checks in this repo relate to it.
   [the course site](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/backpressure/#agent-browser-the-rendered-page-as-ground-truth),
   works well for this). The rendered page is the truth; your mental model of it
   isn't.
+- If a fetch tool (`WebFetch`, `WebSearch`) gets blocked or 403s on a real
+  site you're redesigning or sourcing content from, don't give up and don't
+  invent the content --- open the real URL with `agent-browser` instead. It's
+  a real browser session, not a fetch proxy, so it gets past blocks a plain
+  fetch can't. `agent-browser eval "<js>"` can then pull exact text
+  (`document.querySelector(...).outerHTML`) or computed styles
+  (`getComputedStyle(...).backgroundColor`) straight off the live page.
 - When a check fails, read its output before changing anything. Each check below
   names what it measures, and the failure message is the instruction: it tells
   you the file, the line, or the contract. Treat a red check as authoritative
   --- the page is wrong until the check is green, not until you decide it should
   be.
 - Commit when the checks pass. Never commit a red state.
+
+## My working rules
+
+- **Check the course plugin for updates before starting a new crit or
+  assignment.** Run `claude plugin update comp4020@comp4020` (and
+  `comp4020-statusline@comp4020` while you're at it) before running **start**
+  for a new deliverable, and restart the session if it reports an update ---
+  a stale plugin means `start` is pulling specs or running checks against
+  outdated skill logic without either of us noticing. Once caught genuinely
+  out of date by several releases (0.12.4 installed while 0.13.0--0.14.0 had
+  shipped), so this isn't hypothetical --- check it every time, not just when
+  something seems off.
+- **Commit locally, don't push without asking.** Commit every meaningful
+  change as you go (a new file, a spec test, a harness edit, a working
+  feature) --- don't batch everything into one commit at the end. But never run
+  `git push`, open a PR, or otherwise touch the remote unless I explicitly ask
+  for that push in the same turn. Approval to push once does not carry
+  forward --- ask again next time. This repo stays private and local-only
+  until I say otherwise.
+- **When I name the deliverable, summarize the spec back to me.** If I tell
+  you which crit or assignment we're working on, after you've finished any
+  initialization work (cloning, installing, pulling the spec, writing starter
+  tests), give me a brief summary of that week's spec before we start
+  building --- what's mechanically checkable vs. judged at the crit, and the
+  cutoff. I shouldn't have to re-read the brief myself to know what we're
+  aiming at.
+- **Big changes get a plan first.** If a change is big --- a new feature, a
+  restructure, anything touching multiple files or the content/information
+  model --- write out a detailed implementation plan and get my sign-off
+  before writing code. Small, mechanical, or single-file edits don't need
+  this; use judgement on where the line is.
 
 ## The checks (your sensors)
 
