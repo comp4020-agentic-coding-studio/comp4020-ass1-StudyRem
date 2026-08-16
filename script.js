@@ -515,6 +515,52 @@ function updateCalculator() {
 calcInput.addEventListener("input", updateCalculator);
 updateCalculator();
 
+// Quiz: one prediction per section above, recapping the same mechanic
+// rather than introducing new material. A single delegated click handler
+// on the section covers all four questions instead of one listener each.
+const quizSection = document.getElementById("quiz");
+const quizScoreEl = document.getElementById("quiz-score");
+const QUIZ_TOTAL = document.querySelectorAll(".quiz-question").length;
+let quizScore = 0;
+let quizAnswered = 0;
+
+quizSection.addEventListener("click", (event) => {
+  const option = event.target.closest(".quiz-option");
+  if (!option) {
+    return;
+  }
+
+  const question = option.closest(".quiz-question");
+  if (question.classList.contains("answered")) {
+    return;
+  }
+  question.classList.add("answered");
+
+  const options = question.querySelectorAll(".quiz-option");
+  options.forEach((btn) => {
+    btn.disabled = true;
+    if (btn.dataset.correct === "true") {
+      btn.classList.add("correct");
+    }
+  });
+
+  const isRight = option.dataset.correct === "true";
+  if (!isRight) {
+    option.classList.add("incorrect");
+  }
+
+  const feedback = question.querySelector(".quiz-feedback");
+  feedback.textContent = question.dataset.explanation;
+  feedback.hidden = false;
+
+  quizAnswered += 1;
+  if (isRight) {
+    quizScore += 1;
+  }
+  quizScoreEl.textContent =
+    `Score: ${quizScore}/${QUIZ_TOTAL}` + (quizAnswered === QUIZ_TOTAL ? " — that's all four." : "");
+});
+
 function step() {
   if (turnIndex >= TURNS.length) {
     turnIndex = 0;

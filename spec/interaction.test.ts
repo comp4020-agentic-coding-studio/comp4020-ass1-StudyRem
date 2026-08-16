@@ -119,4 +119,47 @@ describe("core interaction: stepping the tool-call loop", () => {
 
     expect(naive?.textContent).not.toBe(before);
   });
+
+  it("scores a quiz answer and locks the question against a second attempt", async () => {
+    const window = await loadPage();
+    const question = window.document.querySelector('[data-qid="stateless"]');
+    const options = question?.querySelectorAll(".quiz-option");
+    const feedback = question?.querySelector(".quiz-feedback") as HTMLElement;
+    const scoreEl = window.document.getElementById("quiz-score");
+
+    expect(scoreEl?.textContent).toBe("Score: 0/4");
+
+    options?.[0].dispatchEvent(new window.Event("click", { bubbles: true }));
+
+    expect(feedback.hidden).toBe(false);
+    expect(feedback.textContent).not.toBe("");
+    expect(scoreEl?.textContent).toBe("Score: 1/4");
+
+    // Second click on the other option in the same question must not count.
+    options?.[1].dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(scoreEl?.textContent).toBe("Score: 1/4");
+  });
+
+  it("tallies the final score correctly across a mix of right and wrong answers", async () => {
+    const window = await loadPage();
+    const scoreEl = window.document.getElementById("quiz-score");
+
+    // Answer all four questions with a known mix: right, wrong, right, wrong.
+    // The correct option is always index 0, the incorrect one index 1 —
+    // this exercises the running tally, not just a single click.
+    const picks: [string, number][] = [
+      ["stateless", 0],
+      ["capacity", 1],
+      ["gotcha", 0],
+      ["mitigation", 1],
+    ];
+
+    for (const [qid, choiceIndex] of picks) {
+      const question = window.document.querySelector(`[data-qid="${qid}"]`);
+      const options = question?.querySelectorAll(".quiz-option");
+      options?.[choiceIndex].dispatchEvent(new window.Event("click", { bubbles: true }));
+    }
+
+    expect(scoreEl?.textContent).toBe("Score: 2/4 — that's all four.");
+  });
 });

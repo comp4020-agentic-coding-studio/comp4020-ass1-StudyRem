@@ -15,6 +15,7 @@
         <li><a href="#gotcha">What it forgets</a></li>
         <li><a href="#cost-calculator">The real cost</a></li>
         <li><a href="#mitigations">The fixes</a></li>
+        <li><a href="#quiz">Test yourself</a></li>
       </ul>
     </nav>
     <main>
@@ -361,6 +362,95 @@
             occupying the live window the whole time.
           </li>
         </ul>
+      </section>
+
+      <section class="quiz" id="quiz" aria-label="Test yourself">
+        <h2>Do you actually have it?</h2>
+        <p>
+          Four scenarios. Same window as above, no new rules — just the one
+          idea, checked.
+        </p>
+
+        <div class="term-panel">
+          <div class="term-titlebar">
+            <span class="term-dots">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+            </span>
+            quiz — bash
+          </div>
+          <div class="term-body">
+            <div
+              class="quiz-question"
+              data-qid="stateless"
+              data-explanation="No — every call is a brand-new inference over the whole transcript, reattached. The model has no memory of its own last turn; the harness resent it."
+            >
+              <p class="quiz-prompt">
+                1. The model just replied with a tool call. On the next
+                turn, does it remember making that call, on its own —
+                without anything being resent to it?
+              </p>
+              <div class="quiz-options">
+                <button class="term-btn quiz-option" type="button" data-correct="true">No</button>
+                <button class="term-btn quiz-option" type="button" data-correct="false">Yes</button>
+              </div>
+              <p class="quiz-feedback" hidden></p>
+            </div>
+
+            <div
+              class="quiz-question"
+              data-qid="capacity"
+              data-explanation="No, it caps at 70 — compaction holds the total steady regardless of how much has actually been said. That's the gap between the raw and held numbers you watched above."
+            >
+              <p class="quiz-prompt">
+                2. A 70-token window, 15-token baseline. A session runs long
+                enough that total tokens ever said would add up to 400. Does
+                the model ever actually hold 400 tokens at once?
+              </p>
+              <div class="quiz-options">
+                <button class="term-btn quiz-option" type="button" data-correct="true">No, it caps at 70</button>
+                <button class="term-btn quiz-option" type="button" data-correct="false">Yes, it holds everything</button>
+              </div>
+              <p class="quiz-feedback" hidden></p>
+            </div>
+
+            <div
+              class="quiz-question"
+              data-qid="gotcha"
+              data-explanation="It depends whether it's been evicted yet — not never, not always. That's exactly what made prod.yaml survive as long as it did, right up until it didn't."
+            >
+              <p class="quiz-prompt">
+                3. A rule is stated in turn 1. Six turns later, still well
+                within the same fixed window, the model is asked to act
+                somewhere that rule applies. Does it still know the rule?
+              </p>
+              <div class="quiz-options">
+                <button class="term-btn quiz-option" type="button" data-correct="true">Depends whether it's been evicted yet</button>
+                <button class="term-btn quiz-option" type="button" data-correct="false">Always — rules don't expire</button>
+              </div>
+              <p class="quiz-feedback" hidden></p>
+            </div>
+
+            <div
+              class="quiz-question"
+              data-qid="mitigation"
+              data-explanation="Keeping a compacted summary alive across evictions. A bigger window just delays the problem — there's a hard trained limit regardless, so eventually something still has to give."
+            >
+              <p class="quiz-prompt">
+                4. A harness wants a rule from turn 1 to survive a 200-turn
+                session. Which of these actually works?
+              </p>
+              <div class="quiz-options">
+                <button class="term-btn quiz-option" type="button" data-correct="true">Keep a compacted summary of it alive across evictions</button>
+                <button class="term-btn quiz-option" type="button" data-correct="false">Make the context window bigger</button>
+              </div>
+              <p class="quiz-feedback" hidden></p>
+            </div>
+
+            <p class="quiz-score" id="quiz-score" aria-live="polite">Score: 0/4</p>
+          </div>
+        </div>
       </section>
 
       <p class="closing">
