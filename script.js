@@ -286,7 +286,7 @@ function resetReveals() {
   });
 }
 
-function appendTurn(turn) {
+function appendTurn(turn, { scrollToBundleInstead } = {}) {
   const item = document.createElement("li");
   item.className = `block role-${turn.role} entering`;
 
@@ -306,8 +306,16 @@ function appendTurn(turn) {
   item.getBoundingClientRect();
   requestAnimationFrame(() => item.classList.remove("entering"));
 
-  if (typeof item.scrollIntoView === "function") {
-    item.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "end" });
+  // On the turn that first reveals the bundle bar, scrolling straight to
+  // this transcript entry (below it) drags the still-fresh bundle reveal
+  // off the top of the viewport on short screens — scroll to the bundle
+  // instead so its fill animation is actually seen.
+  const target = scrollToBundleInstead ? bundle : item;
+  if (typeof target.scrollIntoView === "function") {
+    target.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: scrollToBundleInstead ? "start" : "end",
+    });
   }
 }
 
@@ -705,10 +713,13 @@ function step() {
   }
 
   const turn = TURNS[turnIndex];
-  appendTurn(turn);
+  const isFirstBundleReveal = bundle.hidden;
   updateLanes(turn);
   updateBundle(turnIndex);
+  // Reveal (and lay out) the bundle bar before appendTurn decides where to
+  // scroll, so scrolling to it actually has a real position to land on.
   revealOnce(bundle);
+  appendTurn(turn, { scrollToBundleInstead: isFirstBundleReveal });
   caption.textContent = turn.caption;
   turnIndex += 1;
 
