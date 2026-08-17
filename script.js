@@ -94,6 +94,7 @@ const windowCaption = document.getElementById("window-caption");
 const tokensHeldEl = document.getElementById("tokens-held");
 const tokensRawEl = document.getElementById("tokens-raw");
 const bundle = document.getElementById("bundle");
+const bundleCaption = document.getElementById("bundle-caption");
 const bundleBar = document.getElementById("bundle-bar");
 const bundleHistory = document.getElementById("bundle-history");
 const bundleNew = document.getElementById("bundle-new");
@@ -286,7 +287,7 @@ function resetReveals() {
   });
 }
 
-function appendTurn(turn, { scrollToBundleInstead } = {}) {
+function appendTurn(turn) {
   const item = document.createElement("li");
   item.className = `block role-${turn.role} entering`;
 
@@ -305,18 +306,6 @@ function appendTurn(turn, { scrollToBundleInstead } = {}) {
   // animates instead of the block just appearing already in place.
   item.getBoundingClientRect();
   requestAnimationFrame(() => item.classList.remove("entering"));
-
-  // On the turn that first reveals the bundle bar, scrolling straight to
-  // this transcript entry (below it) drags the still-fresh bundle reveal
-  // off the top of the viewport on short screens — scroll to the bundle
-  // instead so its fill animation is actually seen.
-  const target = scrollToBundleInstead ? bundle : item;
-  if (typeof target.scrollIntoView === "function") {
-    target.scrollIntoView({
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-      block: scrollToBundleInstead ? "start" : "end",
-    });
-  }
 }
 
 function updateBundle(index) {
@@ -713,13 +702,17 @@ function step() {
   }
 
   const turn = TURNS[turnIndex];
-  const isFirstBundleReveal = bundle.hidden;
   updateLanes(turn);
   updateBundle(turnIndex);
-  // Reveal (and lay out) the bundle bar before appendTurn decides where to
-  // scroll, so scrolling to it actually has a real position to land on.
   revealOnce(bundle);
-  appendTurn(turn, { scrollToBundleInstead: isFirstBundleReveal });
+  appendTurn(turn);
+  // Every step re-grounds the view on the bundle caption rather than
+  // following the transcript downward — the bundle bar is what's actually
+  // changing each turn, and on short viewports scrolling to the newest
+  // transcript line instead pushed it off the top of the screen.
+  if (typeof bundleCaption.scrollIntoView === "function") {
+    bundleCaption.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+  }
   caption.textContent = turn.caption;
   turnIndex += 1;
 
